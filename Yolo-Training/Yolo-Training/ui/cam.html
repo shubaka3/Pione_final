@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phát Sóng (Camera)</title>
+    <style>
+        body { font-family: sans-serif; background: #2c2c2c; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { text-align: center; background: #3a3a3a; padding: 2rem; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        h1 { color: #4CAF50; }
+        input, button { padding: 12px; font-size: 1.1em; margin: 8px; border-radius: 5px; border: none; }
+        input { background: #555; color: white; border: 2px solid #666; }
+        button { cursor: pointer; font-weight: bold; transition: background-color 0.3s; }
+        #start-button { background-color: #4CAF50; color: white; }
+        #stop-button { background-color: #f44336; color: white; }
+        #streaming-view { display: none; margin-top: 1rem; }
+        video { width: 100%; max-width: 640px; border-radius: 8px; transform: scaleX(-1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="setup-view">
+            <h1>🎥 Camera Phát Sóng</h1>
+            <input type="text" id="stream-name" placeholder="Tên phòng (ví dụ: Plant_A1)">
+            <button id="start-button">Bắt đầu Phát</button>
+        </div>
+        <div id="streaming-view">
+            <video id="local-video" autoplay playsinline muted></video>
+            <p id="status-indicator">Trạng thái: Đang chờ</p>
+            <button id="stop-button">Dừng</button>
+        </div>
+    </div>
+
+    <script>
+        const setupView = document.getElementById('setup-view');
+        const streamingView = document.getElementById('streaming-view');
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+        const streamNameInput = document.getElementById('stream-name');
+        const videoElement = document.getElementById('local-video');
+        const statusIndicator = document.getElementById('status-indicator');
+
+        // <<< !!! QUAN TRỌNG: THAY ĐỊA CHỈ SERVER CỦA BẠN VÀO ĐÂY !!! >>>
+        const WEBSOCKET_URL_BASE = `wss://d4be9e62d6b0.ngrok-free.app/stream/ws`;
+        const STUN_SERVER = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+        let localStream = null, ws = null, peerConnection = null;
+
+        async function startStreaming() {
+            const streamName = streamNameInput.value.trim();
+            const clientId = `broadcaster_${crypto.randomUUID()}`;
+            if (!streamName) { alert('Vui lòng nhập tên phòng!'); return; }
+
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                videoElement.srcObject = localStream;
+            } catch (error) { alert('Không thể truy cập camera. Vui lòng cấp quyền và thử lại.'); return; }
+            
+            setupView.style.display = 'none';
+            streamingView.style.display = 'block';
+            statusIndicator.textContent = `Đang kết nối tới phòng: ${streamName}...`;
+
+            const fullUrl = `${WEBSOCKET_URL_BASE}/${streamName}/${clientId}`;
+            ws = new WebSocket(fullUrl);
+
+            ws.onopen = createPeerConnectionAndOffer;
+
+            ws.onmessage = async (event) => {
+                const message = JSON.parse(event.data);
+                if (message.type === 'answer') {
+                    statusIndicator.textContent = "🔴 LIVE";
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(message.sdp));
+                }
+            };
+            ws.onclose = stopStreaming;
+            ws.onerror = () => { statusIndicator.textContent = "Lỗi kết nối!"; stopStreaming(); };
+        }
+
+        function createPeerConnectionAndOffer() {
+            peerConnection = new RTCPeerConnection(STUN_SERVER);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate.toJSON() }));
+                }
+            };
+            
+            peerConnection.createOffer()
+                .then(offer => peerConnection.setLocalDescription(offer))
+                .then(() => {
+                    ws.send(JSON.stringify({
+                        type: 'offer',
+                        sdp: {
+                            type: peerConnection.localDescription.type,
+                            sdp: peerConnection.localDescription.sdp
+                        }
+                    }));
+                });
+
+        }
+        
+        function stopStreaming() {
+            if (ws) ws.close();
+            if (peerConnection) peerConnection.close();
+            if (localStream) localStream.getTracks().forEach(track => track.stop());
+            streamingView.style.display = 'none'; setupView.style.display = 'block';
+        }
+
+        startButton.addEventListener('click', startStreaming);
+        stopButton.addEventListener('click', stopStreaming);
+    </script>
+</body>
+</html>

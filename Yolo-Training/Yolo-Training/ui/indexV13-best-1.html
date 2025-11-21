@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDDC Real-time Plant Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3b82f6; /* Blue 500 */
+            --bg-color: #111827; /* Gray 900 */
+            --card-color: #1f2937; /* Gray 800 */
+            --border-color: #374151; /* Gray 700 */
+            --text-primary: #f9fafb; /* Gray 50 */
+            --text-secondary: #d1d5db; /* Gray 300 */
+            --danger-color: #ef4444; /* Red 500 */
+            --success-color: #22c55e; /* Green 500 */
+        }
+        html, body { height: 100%; overflow: hidden; }
+        body { background-color: var(--bg-color); color: var(--text-primary); font-family: 'Roboto', sans-serif; }
+        .card { background-color: var(--card-color); border: 1px solid var(--border-color); border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.2); transition: all 0.3s ease-in-out; }
+        .btn { padding: 10px 20px; font-weight: 500; border-radius: 0.5rem; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .btn:disabled { cursor: not-allowed; opacity: 0.5; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover:not(:disabled) { filter: brightness(1.15); }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-danger:hover:not(:disabled) { filter: brightness(1.15); }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-success:hover:not(:disabled) { filter: brightness(1.15); }
+        .btn-secondary { background-color: #4b5563; color: white; }
+        .btn-secondary:hover:not(:disabled) { background-color: #6b7280; }
+        .form-input { background-color: #374151; border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 0.5rem; transition: all 0.2s ease; }
+        .form-input:focus { outline: none; box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--primary-color); }
+        .loader-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .loader-spinner { width: 50px; height: 50px; border: 5px solid #fff; border-bottom-color: var(--primary-color); border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--card-color); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 4px; }
+        .modal-hidden { display: none; opacity: 0; }
+        .modal-visible { display: flex; animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+
+        /* Dán đoạn này vào trong thẻ <style> của file indexV12.html */
+
+        /* Detection Marker */
+        .detection-marker {
+            position: absolute;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .detection-marker::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            animation: wave 2s infinite ease-out;
+        }
+        @keyframes wave {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        /* Fruit Details Animation Container */
+        #fruit-details-container {
+            position: absolute;
+            width: 320px; height: 320px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #fruit-details-container.visible {
+            opacity: 1;
+        }
+        #fruit-details-container .info-ring {
+            position: absolute;
+            pointer-events: auto;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background-color: rgba(17, 24, 39, 0.5); /* Gray 900 with 50% opacity */
+            backdrop-filter: blur(4px);
+            text-shadow: 0 0 5px black;
+        }
+        #fruit-details-container .info-ring-svg {
+            position: absolute;
+            animation: rotate 20s linear infinite;
+        }
+        #fruit-details-container circle {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.8);
+            stroke-width: 1.5;
+            stroke-dasharray: 220; /* Circumference of a 35 radius circle */
+            stroke-dashoffset: 220;
+            animation: draw-circle 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        #fruit-details-container .info-value {
+            font-size: 1rem; font-weight: 500;
+        }
+        #fruit-details-container .info-label {
+            font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);
+        }
+        #fruit-details-container .connector-line {
+            stroke: rgba(255, 255, 255, 0.8);
+            stroke-width: 1;
+            opacity: 0.4;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes draw-circle {
+            to { stroke-dashoffset: 0; }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="loader" class="loader-overlay hidden"><div class="loader-spinner"></div></div>
+
+    <div id="login-view" class="h-full w-full flex items-center justify-center p-4">
+        <div class="w-full max-w-md p-8 space-y-8 card">
+            <h1 class="text-3xl font-bold text-center text-white">MDDC Login</h1>
+            <form id="login-form" class="space-y-6">
+                <input id="username" type="text" required class="w-full form-input" placeholder="Username" value="admin">
+                <input id="password" type="password" required class="w-full form-input" placeholder="Password" value="password">
+                <button type="submit" class="w-full btn btn-primary">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-view" class="h-full w-full flex flex-col hidden">
+        <nav class="w-full p-4 flex justify-between items-center border-b border-gray-700 bg-gray-800/70 backdrop-blur-md flex-shrink-0 z-20">
+            <h1 class="text-2xl font-bold text-white tracking-wide">MDDC Platform</h1>
+            <div class="flex items-center gap-4">
+                <span id="welcome-user" class="text-lg hidden sm:block"></span>
+                <button id="logout-btn" class="btn btn-danger px-4 py-2 text-sm">Logout</button>
+            </div>
+        </nav>
+
+        <div class="flex-grow relative">
+            <main id="dashboard-view" class="absolute inset-0 p-4 sm:p-6 overflow-y-auto custom-scrollbar">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h2 class="text-3xl font-bold text-white">Dashboard</h2>
+                    <button id="add-product-btn" class="btn btn-success w-full sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        Add New Plant
+                    </button>
+                </div>
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </main>
+
+            <main id="detail-view" class="absolute inset-0 p-4 sm:p-6 overflow-y-auto hidden flex flex-col custom-scrollbar">
+                <button id="back-to-dashboard-btn" class="btn btn-secondary mb-4 px-4 py-2 text-sm self-start flex-shrink-0">&larr; Back to Dashboard</button>
+                <div class="flex-grow grid grid-cols-1 lg:grid-cols-10 gap-6">
+                    <div class="lg:col-span-7 flex flex-col card p-4 gap-4">
+                        <div class="flex justify-between items-center flex-shrink-0">
+                            <h2 id="tree-name" class="text-xl font-bold text-white"></h2>
+                            <div class="flex gap-2">
+                                <button id="view-mode-normal" class="btn btn-secondary px-3 py-1 text-sm">Normal View</button>
+                                <button id="view-mode-ai" class="btn btn-primary px-3 py-1 text-sm">AI Detection</button>
+                            </div>
+                        </div>
+                        <div class="flex-grow relative rounded-lg overflow-hidden min-h-[300px] sm:min-h-[400px] bg-black" id="video-container">
+                            <video id="realtime-video" class="absolute top-0 left-0 w-full h-full object-contain" autoplay playsinline muted></video>
+                            <canvas id="overlay-canvas" class="absolute top-0 left-0 w-full h-full object-contain pointer-events-none"></canvas>
+                            <div id="detection-container" class="absolute top-0 left-0 w-full h-full"></div>
+                            <div id="stream-status" class="absolute inset-0 flex items-center justify-center text-gray-400 text-lg">Waiting for video stream...</div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-3 flex flex-col card p-6">
+                        <h3 class="text-xl font-bold text-white border-b border-gray-600 pb-3 mb-4 flex-shrink-0">Plant Information</h3>
+                        <div class="space-y-4 flex-grow custom-scrollbar overflow-y-auto pr-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Thời gian:</span>
+                                <span id="plant-time" class="text-white font-medium text-lg">--:--:--</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Thời tiết:</span>
+                                <span id="plant-weather" class="text-white font-medium">--</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Nhiệt độ:</span>
+                                <span id="plant-temp" class="text-white font-medium">-- °C</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Độ ẩm:</span>
+                                <span id="plant-humidity" class="text-white font-medium">-- %</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Ánh sáng:</span>
+                                <span id="plant-light" class="text-white font-medium">-- lux</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Mực nước:</span>
+                                <span id="plant-water" class="text-white font-medium">-- %</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Vị trí:</span>
+                                <span id="plant-location" class="text-white font-medium">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="add-product-modal" class="modal-hidden fixed inset-0 bg-black/70 items-center justify-center z-50 p-4">
+        <div class="card w-full max-w-lg p-6 relative">
+            <h3 class="text-2xl font-bold text-white mb-4">Add New Plant</h3>
+            <form id="add-product-form" class="space-y-4">
+                 <input id="productID" type="text" required class="w-full form-input" placeholder="Product ID (e.g., Plant_01)">
+                 <input id="productName" type="text" required class="w-full form-input" placeholder="Plant Name">
+                 <textarea id="productDescription" rows="3" required class="w-full form-input" placeholder="Description"></textarea>
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" id="add-product-cancel-btn" class="btn btn-danger">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<script src="https://vmentor.emg.edu.vn/ui/embed.js?encryption_api=f3c49621-cc62-457c-8471-2dd048983e7d&encryption_secret=200feb74-12eb-43ee-b674-902fc609f3be&email=user@example.com"></script>
+
+<script type="module">
+// --- DOM Elements ---
+const loginView = document.getElementById('login-view'), appView = document.getElementById('app-view'),
+      dashboardView = document.getElementById('dashboard-view'), detailView = document.getElementById('detail-view'),
+      productGrid = document.getElementById('product-grid'), loginForm = document.getElementById('login-form'),
+      logoutBtn = document.getElementById('logout-btn'), welcomeUser = document.getElementById('welcome-user'),
+      backToDashboardBtn = document.getElementById('back-to-dashboard-btn'),
+      treeName = document.getElementById('tree-name'),
+      addProductModal = document.getElementById('add-product-modal'), addProductBtn = document.getElementById('add-product-btn'),
+      addProductForm = document.getElementById('add-product-form'), addProductCancelBtn = document.getElementById('add-product-cancel-btn'),
+      loader = document.getElementById('loader'),
+    //   chatMessages = document.getElementById('chat-messages'), // <-- XÓA DÒNG NÀY
+      realtimeVideo = document.getElementById('realtime-video'),
+      overlayCanvas = document.getElementById('overlay-canvas'),
+      streamStatus = document.getElementById('stream-status'),
+      viewModeNormalBtn = document.getElementById('view-mode-normal'),
+      viewModeAiBtn = document.getElementById('view-mode-ai'),
+      videoContainer = document.getElementById('video-container'), 
+      detectionContainer = document.getElementById('detection-container');
+
+// ✨ THÊM CÁC BIẾN DOM CHO BẢNG THÔNG TIN MỚI ✨
+const plantTimeEl = document.getElementById('plant-time'),
+      plantWeatherEl = document.getElementById('plant-weather'),
+      plantTempEl = document.getElementById('plant-temp'),
+      plantHumidityEl = document.getElementById('plant-humidity'),
+      plantLightEl = document.getElementById('plant-light'),
+      plantWaterEl = document.getElementById('plant-water'),
+      plantLocationEl = document.getElementById('plant-location');
+
+
+// --- State Management ---
+let state = {
+    isLoggedIn: false,
+    currentUser: null,
+    products: [
+        { productID: 'Plant_A1', name: 'Apple Tree - Section A1', description: 'Golden Delicious variety, 3 years old.', isActive: true },
+        { productID: 'Plant_B2', name: 'Tomato Vine - Section B2', description: 'Cherry tomatoes, nearing harvest.', isActive: true },
+        { productID: 'Plant_C3', name: 'Grape Vine - Section C3', description: 'Concord grapes, requires pruning.', isActive: false },
+    ],
+    selectedProductId: null,
+    isAiDetectionActive: false,
+};
+
+// ✨ THÊM BIẾN ĐỂ QUẢN LÝ CÁC HÀM LẶP LẠI ✨
+let clockInterval = null;
+let dataFetchInterval = null;
+
+// --- WebRTC Service ---
+const WebRTCService = {
+    ws: null,
+    pc: null,
+    videoElement: null,
+    canvasContext: null,
+    lastDetections: {},
+    WEBSOCKET_URL_BASE: `wss://bae565f409e9.ngrok-free.app/stream/ws`, // Replace with your WebSocket URL
+
+    connect: function(roomName, videoEl, canvasEl) {
+        this.videoElement = videoEl;
+        this.canvasContext = canvasEl.getContext('2d');
+        const clientId = `viewer_${crypto.randomUUID()}`;
+        const fullUrl = `${this.WEBSOCKET_URL_BASE}/${roomName}/${clientId}`;
+        streamStatus.textContent = `Connecting to room '${roomName}'...`;
+        this.ws = new WebSocket(fullUrl);
+
+        this.ws.onopen = () => {
+            streamStatus.textContent = "Connected, requesting video...";
+            this.ws.send(JSON.stringify({ type: 'join_as_viewer' }));
+        };
+        this.ws.onmessage = async (event) => {
+            const message = JSON.parse(event.data);
+            if (message.type === 'offer') this.handleOffer(message.sdp);
+            // We no longer handle 'yolo_results' here for drawing, only for chat updates.
+            // else if (message.type === 'yolo_results') { // <-- XÓA HOẶC CHÚ THÍCH KHỐI NÀY
+            //     this.updateChat(message.detections);
+            // } 
+            else if (message.error) {
+                streamStatus.textContent = `Server Error: ${message.error}`;
+                this.disconnect();
+            }
+        };
+        this.ws.onclose = () => { streamStatus.textContent = "Connection lost."; this.cleanup(); };
+        this.ws.onerror = () => { streamStatus.textContent = "Connection error."; this.cleanup(); };
+    },
+
+    handleOffer: async function(offerSdp) {
+        if (this.pc) this.pc.close();
+        this.pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+        this.pc.ontrack = (event) => {
+            if (this.videoElement.srcObject !== event.streams[0]) {
+                this.videoElement.srcObject = event.streams[0];
+                streamStatus.style.display = 'none';
+            }
+        };
+        this.pc.onicecandidate = (event) => {
+            if (event.candidate) this.ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate.toJSON() }));
+        };
+        await this.pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+        const answer = await this.pc.createAnswer();
+        await this.pc.setLocalDescription(answer);
+        this.ws.send(JSON.stringify({ type: 'answer', sdp: this.pc.localDescription.toJSON() }));
+    },
+    
+    renderStaticDetections: function(detectionData) {
+        if (!this.canvasContext || !detectionData || !detectionData.detections) return;
+        
+        const { detections, orig_shape } = detectionData;
+        const canvas = this.canvasContext.canvas;
+        if (!orig_shape) return;
+
+        const scaleX = canvas.width / orig_shape[1];
+        const scaleY = canvas.height / orig_shape[0];
+
+        detections.forEach(det => {
+            const [x1, y1, x2, y2] = det.box;
+            const rectX = x1 * scaleX;
+            const rectY = y1 * scaleY;
+            const rectWidth = (x2 - x1) * scaleX;
+            const rectHeight = (y2 - y1) * scaleY;
+
+            // Bật lại nếu muốn hiển thị bounding box
+            // this.canvasContext.strokeStyle = 'rgba(59, 130, 246, 0.9)';
+            // this.canvasContext.lineWidth = 2;
+            // this.canvasContext.strokeRect(rectX, rectY, rectWidth, rectHeight);
+            
+            // const label = `${det.label} (${(det.confidence * 100).toFixed(0)}%)`;
+            // this.canvasContext.fillStyle = 'rgba(59, 130, 246, 0.9)';
+            // const textWidth = this.canvasContext.measureText(label).width;
+            // this.canvasContext.fillRect(rectX, rectY - 20, textWidth + 10, 20);
+            // this.canvasContext.fillStyle = 'white';
+            // this.canvasContext.font = '14px Roboto';
+            // this.canvasContext.fillText(label, rectX + 5, rectY - 5);
+        });
+    },
+    
+    // ✨ XÓA TOÀN BỘ HÀM updateChat ✨
+    // updateChat: function(detections) { ... },
+
+    cleanup: function() {
+        if (this.pc) { this.pc.close(); this.pc = null; }
+        if (this.videoElement) { this.videoElement.srcObject = null; }
+        if(this.canvasContext) this.canvasContext.clearRect(0, 0, this.canvasContext.canvas.width, this.canvasContext.canvas.height);
+        streamStatus.style.display = 'flex';
+        streamStatus.textContent = "Waiting for video stream...";
+        this.lastDetections = {};
+    },
+    
+    disconnect: function() {
+        if (this.ws) { this.ws.close(); this.ws = null; }
+        this.cleanup();
+    }
+};
+
+// --- UI Functions ---
+const showLoader = () => loader.classList.remove('hidden');
+const hideLoader = () => loader.classList.add('hidden');
+const showView = (view) => {
+    [loginView, appView, dashboardView, detailView].forEach(v => v.classList.add('hidden'));
+    if (view === 'login') loginView.classList.remove('hidden');
+    else {
+        appView.classList.remove('hidden');
+        if (view === 'dashboard') dashboardView.classList.remove('hidden');
+        else if (view === 'detail') detailView.classList.remove('hidden');
+    }
+};
+const showAddProductModal = () => { addProductForm.reset(); addProductModal.classList.add('modal-visible'); };
+const hideAddProductModal = () => { addProductModal.classList.remove('modal-visible'); };
+
+// --- Main Logic ---
+const renderDashboard = () => {
+    productGrid.innerHTML = state.products.map(product => `
+        <div class="card p-4 flex flex-col justify-between cursor-pointer transition-transform duration-300 hover:-translate-y-1" data-product-id="${product.productID}">
+            <div>
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-bold text-white">${product.name}</h3>
+                    <span class="text-xs font-bold px-2 py-1 rounded ${product.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">${product.isActive ? 'ACTIVE' : 'INACTIVE'}</span>
+                </div>
+                <p class="text-sm mt-2 text-gray-300">${product.description}</p>
+            </div>
+            <div class="text-xs mt-4 pt-4 border-t border-gray-600 text-gray-400">ID: ${product.productID}</div>
+        </div>`).join('');
+};
+
+const handleLogin = (e) => {
+    e.preventDefault();
+    showLoader();
+    setTimeout(() => {
+        state.isLoggedIn = true;
+        state.currentUser = { name: document.getElementById('username').value };
+        welcomeUser.textContent = `Welcome, ${state.currentUser.name}`;
+        renderDashboard();
+        showView('dashboard');
+        hideLoader();
+    }, 500);
+};
+
+const handleLogout = () => {
+    WebRTCService.disconnect();
+    // ✨ THÊM LỆNH DỌN DẸP INTERVALS ✨
+    if (clockInterval) clearInterval(clockInterval);
+    if (dataFetchInterval) clearInterval(dataFetchInterval);
+
+    showLoader();
+    setTimeout(() => {
+        state.isLoggedIn = false; state.currentUser = null;
+        showView('login');
+        hideLoader();
+    }, 300);
+};
+
+const showDetailView = (productId) => {
+    const product = state.products.find(p => p.productID === productId);
+    if (!product) return;
+    state.selectedProductId = productId;
+    treeName.textContent = `Live Analysis: ${product.name}`;
+    
+    // ✨ XÓA DÒNG NÀY ✨
+    // chatMessages.innerHTML = '<div class="flex justify-start"><div class="bg-gray-600 p-3 rounded-lg max-w-xs">Hello! Real-time updates will appear here.</div></div>';
+    
+    showView('detail');
+    WebRTCService.connect(productId, realtimeVideo, overlayCanvas);
+
+    // ✨ THÊM LOGIC ĐỂ KHỞI TẠO ĐỒNG HỒ VÀ LẤY DỮ LIỆU ✨
+    updateLiveTime(); // Chạy 1 lần ngay lập tức
+    clockInterval = setInterval(updateLiveTime, 1000); // Cập nhật mỗi giây
+    
+    fetchPlantInfo(); // Lấy dữ liệu 1 lần ngay lập tức
+    dataFetchInterval = setInterval(fetchPlantInfo, 10000); // Lấy lại dữ liệu sau mỗi 10 giây
+};
+
+const hideFruitDetails = () => {
+    const details = document.getElementById('fruit-details-container');
+    if (details) {
+        details.classList.remove('visible');
+        setTimeout(() => details.remove(), 300);
+    }
+};
+
+// ✨ THÊM CÁC HÀM MỚI ĐỂ CẬP NHẬT THÔNG TIN CÂY ✨
+
+/** Cập nhật đồng hồ real-time */
+const updateLiveTime = () => {
+    if (plantTimeEl) {
+        plantTimeEl.textContent = new Date().toLocaleTimeString('vi-VN');
+    }
+};
+
+/** Cập nhật UI với dữ liệu mới */
+const updatePlantInfoUI = (data) => {
+    plantWeatherEl.textContent = data.weather;
+    plantTempEl.textContent = `${data.temperature.toFixed(1)} °C`;
+    plantHumidityEl.textContent = `${data.humidity.toFixed(0)} %`;
+    plantLightEl.textContent = `${data.light.toLocaleString('vi-VN')} lux`;
+    plantWaterEl.textContent = `${data.waterLevel.toFixed(0)} %`;
+    plantLocationEl.textContent = data.location;
+};
+
+/** Giả lập việc gọi API lấy thông tin cây */
+const fetchPlantInfo = () => {
+    // Đây là nơi bạn sẽ gọi API thật bằng fetch()
+    // Hiện tại, chúng ta giả lập bằng setTimeout và dữ liệu mẫu
+    console.log("Đang lấy dữ liệu cây trồng...");
+    setTimeout(() => {
+        const weatherOptions = ['Trời nắng', 'Nhiều mây', 'Mưa nhỏ'];
+        
+        // Tạo dữ liệu ngẫu nhiên
+        const mockData = {
+            weather: weatherOptions[Math.floor(Math.random() * weatherOptions.length)],
+            temperature: 25 + Math.random() * 5, // 25.0 - 30.0
+            humidity: 60 + Math.random() * 15, // 60 - 75
+            light: 10000 + Math.random() * 5000, // 10000 - 15000
+            waterLevel: 70 + Math.random() * 20, // 70 - 90
+            location: 'Khu A, Giàn 12' // Giữ cố định
+        };
+        
+        console.log("Đã nhận dữ liệu:", mockData);
+        updatePlantInfoUI(mockData);
+
+    }, 500); // Giả lập độ trễ mạng 0.5s
+};
+
+
+// ❌ XÓA TOÀN BỘ ĐOẠN NÀY ❌ (Phần code này bị lặp lại và nằm sai chỗ)
+
+// const renderDetections = (detections) => { ... };
+// viewModeNormalBtn.addEventListener('click', () => { ... });
+// viewModeAiBtn.addEventListener('click', async () => { ... });
+
+// ❌ KẾT THÚC PHẦN CẦN XÓA ❌
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    loginForm.addEventListener('submit', handleLogin);
+    logoutBtn.addEventListener('click', handleLogout);
+    backToDashboardBtn.addEventListener('click', () => {
+        WebRTCService.disconnect();
+        
+        // ✨ THÊM LỆNH DỌN DẸP INTERVALS ✨
+        if (clockInterval) clearInterval(clockInterval);
+        if (dataFetchInterval) clearInterval(dataFetchInterval);
+
+        showView('dashboard');
+    });
+    addProductBtn.addEventListener('click', showAddProductModal);
+    addProductCancelBtn.addEventListener('click', hideAddProductModal);
+    addProductForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.products.push({
+            productID: document.getElementById('productID').value,
+            name: document.getElementById('productName').value,
+            description: document.getElementById('productDescription').value,
+            isActive: true
+        });
+        hideAddProductModal();
+        renderDashboard();
+    });
+    productGrid.addEventListener('click', (e) => {
+        const card = e.target.closest('[data-product-id]');
+        if (card) showDetailView(card.dataset.productId);
+    });
+    
+    detectionContainer.addEventListener('click', hideFruitDetails);
+
+    // ✨ HÀM NÀY ĐƯỢC GIỮ NGUYÊN ✨
+    const renderDetections = (detections) => {
+        detectionContainer.innerHTML = '';
+        const staticImage = overlayCanvas; 
+        const { clientWidth, clientHeight } = videoContainer;
+
+        const naturalWidth = realtimeVideo.videoWidth;
+        const naturalHeight = realtimeVideo.videoHeight;
+        if (!naturalWidth || !naturalHeight) return;
+
+        const imageAspect = naturalWidth / naturalHeight;
+        const containerAspect = clientWidth / clientHeight;
+        let scale, offsetX = 0, offsetY = 0;
+
+        if (imageAspect > containerAspect) {
+            scale = clientWidth / naturalWidth;
+            offsetY = (clientHeight - naturalHeight * scale) / 2;
+        } else {
+            scale = clientHeight / naturalHeight;
+            offsetX = (clientWidth - naturalWidth * scale) / 2;
+        }
+
+        const allowedFruits = ['apple', 'orange']; 
+        const fruitDetections = detections.filter(d => allowedFruits.includes(d.label));
+
+        fruitDetections.forEach((det) => {
+            const [x1, y1, x2, y2] = det.box;
+            const centerX = ((x1 + x2) / 2) * scale + offsetX;
+            const centerY = ((y1 + y2) / 2) * scale + offsetY;
+
+            const marker = document.createElement('div');
+            marker.className = 'detection-marker';
+            marker.style.left = `${centerX}px`;
+            marker.style.top = `${centerY}px`;
+
+            marker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                hideFruitDetails();
+
+                const sunExposure = Math.round(85 - (centerY / clientHeight) * 20);
+                const qualityValue = (det.box[0] + det.box[1]) % 2 === 0 ? 'Good' : 'Avg';
+                const harvestValue = `${(det.box[2] % 10) + 5} days`;
+
+                const details = [
+                    { label: 'Type', value: det.label.charAt(0).toUpperCase() + det.label.slice(1) },
+                    { label: 'Quality', value: qualityValue },
+                    { label: 'Harvest in', value: harvestValue },
+                    { label: 'Sunlight', value: `${sunExposure}%` },
+                    { label: 'Confidence', value: `${(det.confidence * 100).toFixed(0)}%` }
+                ];
+
+                const detailsContainer = document.createElement('div');
+                detailsContainer.id = 'fruit-details-container';
+                detailsContainer.style.left = `${centerX}px`;
+                detailsContainer.style.top = `${centerY}px`;
+
+                const isNearHorizontalEdge = centerX < 160 || centerX > clientWidth - 160;
+                const isNearVerticalEdge = centerY < 160 || centerY > clientHeight - 160;
+                const baseAngle = isNearHorizontalEdge ? (centerX < 160 ? -90 : 90) : (isNearVerticalEdge ? (centerY < 160 ? 0 : 180) : 0);
+                const angleSpan = (isNearHorizontalEdge || isNearVerticalEdge) ? 180 : 360;
+                const angleIncrement = angleSpan / details.length;
+
+                details.forEach((item, i) => {
+                    const angle = (baseAngle + i * angleIncrement) * (Math.PI / 180);
+                    const ringX = 160 + Math.cos(angle) * 120;
+                    const ringY = 160 + Math.sin(angle) * 120;
+
+                    detailsContainer.innerHTML += `
+                        <div class="info-ring" style="left: ${ringX - 40}px; top: ${ringY - 40}px;">
+                            <svg class="info-ring-svg" width="80" height="80" viewBox="0 0 90 90" style="animation-delay: ${i * 0.1}s"><circle cx="45" cy="45" r="35"/></svg>
+                            <span class="info-value">${item.value}</span><span class="info-label">${item.label}</span>
+                        </div>
+                        <svg class="absolute inset-0 w-full h-full"><line class="connector-line" x1="160" y1="160" x2="${ringX}" y2="${ringY}" /></svg>
+                    `;
+                });
+
+                detectionContainer.appendChild(detailsContainer);
+                setTimeout(() => detailsContainer.classList.add('visible'), 50);
+            });
+            detectionContainer.appendChild(marker);
+        });
+    };
+
+    viewModeNormalBtn.addEventListener('click', () => {
+        state.isAiDetectionActive = false;
+        detectionContainer.innerHTML = ''; 
+        hideFruitDetails(); 
+
+        WebRTCService.canvasContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        overlayCanvas.style.opacity = 0;
+        realtimeVideo.style.opacity = 1;
+        viewModeNormalBtn.classList.replace('btn-secondary', 'btn-primary');
+        viewModeAiBtn.classList.replace('btn-primary', 'btn-secondary');
+    });
+
+    viewModeAiBtn.addEventListener('click', async () => {
+        if (state.isAiDetectionActive) return;
+
+        showLoader();
+
+        const video = realtimeVideo;
+        const canvas = overlayCanvas;
+        const ctx = canvas.getContext('2d');
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+
+        if (videoWidth === 0 || videoHeight === 0) {
+            alert("Cannot capture image, video not ready.");
+            hideLoader();
+            return;
+        }
+
+        canvas.width = videoWidth;
+        canvas.height = videoHeight;
+        ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+        
+        canvas.toBlob(async (blob) => {
+            if (!blob) {
+                alert("Could not create image from video.");
+                hideLoader();
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', blob, 'snapshot.png');
+
+            try {
+                const response = await fetch('/predict/image', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
+
+                const results = await response.json();
+
+                if (results && results.detections && results.detections.length > 0) {
+                    state.isAiDetectionActive = true;
+                    video.style.opacity = 0;
+                    canvas.style.opacity = 1;
+                    viewModeAiBtn.classList.replace('btn-secondary', 'btn-primary');
+                    viewModeNormalBtn.classList.replace('btn-primary', 'btn-secondary');
+                    
+                    renderDetections(results.detections);
+
+                    WebRTCService.renderStaticDetections(results);
+                    
+                    // ✨ XÓA DÒNG NÀY ✨
+                    // WebRTCService.updateChat(results.detections);
+                } else {
+                    // KHÔNG CÓ KẾT QUẢ: Thông báo và tự động quay về view thường
+                    // (Chỗ này tôi đã sửa lại, không cần tạo msgDiv nữa vì không có chatbox)
+                    alert("No objects detected. Returning to live view.");
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            } catch (error) {
+                console.error("AI analysis error:", error);
+                alert("An error occurred during image analysis.");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            } finally {
+                hideLoader();
+            }
+        }, 'image/png');
+    });
+    
+    showView('login');
+    viewModeNormalBtn.click(); 
+});
+
+</script>
+</body>
+</html>

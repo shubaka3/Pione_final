@@ -1,0 +1,7 @@
+ultralytics
+fastapi
+uvicorn
+pillow
+python-multipart
+aiortc
+uvicorn[standard]

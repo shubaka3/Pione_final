@@ -1,0 +1,127 @@
+const logs = receipt.logs.map(log => { try { return FactoryInterface.parseLog(log); } catch (e) { return null; } }).filter(parsedLog => parsedLog && parsedLog.name === "AgriSupplyChainCreated");
+const FactoryInterface = Factory.interface;
+const receipt = await ethers.provider.getTransaction
+const Factory = await ethers.getContractFactory("DemoFarmTraceabilityFactory");
+const FactoryInterface = Factory.interface;
+const receipt = await ethers.provider.getTransactief3d156686437f11e0057b50c1c");
+const address = (await (await ethers.provider.getTa648af1def3d156686437f11e0057b50c1c")).logs.map(log => { try { return Factory.interface.parseLog(log); } catch (e) { return null; } }).filter(parsedLog => parsedLog && parsedLog.name === "AgriSupplyChainCreated")[0].args.contractAddr);
+const Factory = await ethers.getContractFactory("DemoFarmTraceabilityFactory");
+const finalSupplyChains = await factory.getSupplyChainAddresses(companyRegNumber);
+const factory = await Factory.attach(factoryAddress); 
+const Factory = await ethers.getContractFactory("DemoFarmTraceabilityFactory"); 
+const companyRegNumber = "TYT-AGRI-VN"; 
+const factoryAddress = "0x998316cAe68113FA2EEA654E59685951980Eef61"; 
+const fa
+const Factory = await ethers.getContractFactory("DemoFarmTraceabilityFactory"); 
+const companyRegNumber = "TYT-AGRI-VN"; 
+const factoryAddress = "0x998316cAe68113FA2EEA654E59685951980Eef61"; 
+if (finalSupplyChains.length > 0) { console.log("========================================================="); console.log("🚀 KHÓA CUỐI CÙNG: ĐỊA CHỈ SUPPLY CHAIN CỦA TEAM TYT:", finalSupplyChains[0]); console.log("========================================================="); } else { console.log("Lỗi: Không tìm thấy địa chỉ Supply Chain nào cho TYT."); }
+if (finalSupplyChains.length > 0) { console.log("�� ĐỊA CHỈ SUPPLY CHAIN CỦA TEAM TYT:", finalSupplyChains[0]); } else { console.log("Lỗi: Không tìm thấy địa chỉ!"); }
+const finalSupplyChains = await factory.getSupplyC
+const supplyChains = await factory.getSupplyChainAddresses(companyRegNumber); 
+const supplyChains = await factory.getCompanySupplyChains(companyRegNumber);
+const factory = await Factory.attach(factoryAddress); 
+const Factory = await ethers.getContractFactory("DemoFarmTraceabilityFactory"); 
+const companyRegNumber = "TYT-AGRI-VN"; 
+const factoryAddress = "0x998316cAe68113FA2EEA654E59685951980Eef61"; 
+.exit
+}
+    console.log("Lỗi: Không tìm thấy sự kiện tạo hợp đồng!");
+} else {
+    console.log("=========================================================");
+    console.log(supplyChainAddress); 
+    console.log("🚀 KHÓA CUỐI CÙNG: ĐỊA CHỈ SUPPLY CHAIN CỦA TEAM TYT (DÙNG CHO API):");
+    console.log("==========================================
+    const supplyChainAddress = logs[0].args.contractAddr;
+if (logs.length > 0) {
+const logs = receipt.logs.filter(log => log.fragment && log.fragment.name === "AgriSupplyChainCreated");
+console.log("-> Tạo hợp đồng thành công. Đang lấy địa chỉ...");
+const receipt = await txCreate.wait();
+const txCreate = await factory.createSupplyChain(companyRegNumber, "Chuoi cung ung Cay Xanh TYT", "He thong truy vet cho cac lo hang cay trong");
+console.log("-> Đang gửi giao dịch tạo Hợp đồng Chuỗi Cung ứng...");
+console.log(`-> Đăng ký công ty TYT thành công! Mã: ${companyRegNumber}`);
+await txReg.wait();
+const txReg = await factory.registerCompany(companyRegNumber, "TYT Farm Solutions", deployer.address);
+console.log("-> Đang gửi giao dịch đăng ký công ty...");
+const companyRegNumber = "TYT-AGRI-VN";
+const [deployer] = await ethers.getSigners();
+const factory = await Factory.attach(factoryAddress); 
+const Factory = await ethers.getContractFactory("DemoFarmTraceabilityFactory"); 
+const factoryAddress = "0x998316cAe68113FA2EEA654E59685951980Eef61"; 
+console.log("-> Tạo hợp đồng thành công. Đang lấy địa chỉ...");
+const receipt = await txCreate.wait();
+ctory.createSupplyChain(companyRegNumber, "Chuoi cung ung Cay Xanh TYT", "He thong truy vet cho cac lo hang cay trong");
+console.log("-> Đang gửi giao dịch tạo Hợp đconst txCreate = await fa
+console.log(`-> Đăng ký công ty TYT thành công! Mã: ${companyRegNumber}`);
+await txReg.wait();
+const txReg = await factory.registerCompanyaddress);
+console.log("-> Đang gửi giao dịch đăng ký công ty...");
+const companyRegNumber = "TYT-AGRI-VN";
+const [deployer] = await ethers.getSigners();
+const factory = await Factory.attach(factoryAddress); 
+const Factory = await ethers.getContractFactory("DemoFarmTraceabilityFactory"); 
+const factoryAddress = "0x998316cAe68113FA2EEA654E59685951980Eef61"; 
+const companyRegNumber = "TYT-AGRI-VN";
+const [deployer] = await ethers.getSigners();
+const factory = await Factory.attach(factoryAddress); 
+const Factory = await ethers.getContractFactory("TYTFarmFactory");
+const factoryAddress = "0x998316cAe68113FA2EEA654E59685951980Eef61"; 
+    console.log("Lỗi: Không tìm thấy sự kiện tạo hợp đồng!");
+} else {
+    console.log("=========================================================");
+    console.log(supplyChainAddress); 
+    console.log("🚀 KHÓA CUỐI CÙNG: ĐỊA CHỈ SUPPLY CHAIN CỦA TEAM TYT (DÙNG CHO API):");
+    console.log("=========================================================");
+    const supplyChainAddress = logs[0].args.contractAddr;
+if (logs.length > 0) {
+const logs = receipt.logs.filter(log => log.fragment && log.fragment.name === "AgriSupplyChainCreated");
+console.log("-> Tạo hợp đồng thành công. Đang lấy địa chỉ...");
+const receipt = await txCreate.wait();
+g cay trong");
+const txCreate = await factory.createSupplyChain(companyRegNumber, "Chuoi cung ung Cay Xanh TYT", "He thong truy vet cho cac lo han
+console.log("-> Đang gửi giao dịch tạo Hợp đồng Chuỗi Cung ứng...");
+console.log(`-> Đăng ký công ty TYT thành công! Mã: ${companyRegNumber}`);
+await txReg.wait();
+const txReg = await factory.registerCompany(companyRegNumber
+console.log("-> Đang gửi giao dịch đăng ký công ty...");
+const companyRegNumber = "TYT-AGRI-VN"; 
+const [deployer] = await ethers.getSigners();
+const factory = await Factory.attach(factoryAddress); 
+const Factory = await ethers.getContractFactory("TYTFarmFactory");
+const factoryAddress = "0x998316cAe68113FA2EEA654E59685951980Eef61"; 
+    }
+        console.log("Lỗi: Không tìm thấy sự kiện tạo hợp đồng! Vui lòng kiểm tra lại log giao dịch trên Zeroscan.");
+    } else {
+        console.log("Địa chỉ Supply Chain (Ethers v5):", supplyChainAddress);
+        const supplyChainAddress = event.args.contractAddr;
+    if (event) {
+    const event = receipt.events.find(e => e.event === "AgriSupplyChainCreated");
+    // Thử cách lấy event cũ hơn (nếu bạn dùng ethers v5)
+} else {
+    console.log("=========================================================");
+    console.log(supplyChainAddress); 
+    console.log("🚀 KHÓA CUỐI CÙNG: ĐỊA CHỈ SUPPLY CHAIN CỦA TEAM TYT (DÙNG CHO API):");
+    console.log("=========================================================");
+    const supplyChainAddress = logs[0].args.contractAddr;
+if (logs.length > 0) {
+const logs = receipt.logs.filter(log => log.fragment && log.fragment.name === "AgriSupplyChainCreated");
+hardhat mới)
+// (Sử dụng cách lấy logs cho ethers v6/
+// 4. Lấy Địa chỉ Supply Chain (Kết quả cuối cùng)
+console.log("Tạo hợp đồng thành công. Đang lấy địa child_process
+const receipt = await txCreate.wait();
+anh TYT", "He thong truy vet cho cac lo hang cay trong");
+consconst txCreate = await factory.createSupplyChain(companyRegNumber, "Chuoi cung ung Cay X
+ 3. Tạo Hợp đồng Chuỗi Cung ứng (Giao dịch 2)
+//
+console.log(`Đăng ký công ty TYT thành công! Mã: ${companyRegNumber}`);
+const txReg = await factory.registerCompany(compawait txReg.wait();
+nsole.log("Đang gửi giao dịch đăng ký công ty...");
+co
+// 2. Đăng ký Công ty TYT (Giao dịch 1)
+cconst companyRegNumber = "TYT-AGRI-VN"; // Mã đăng ký công ty
+factory = await factory.attach(factoryAddress); 
+const Factory = await econst 
+// 1. Kết nối với Factory
+const factoryAddress = "0x998316cAe68113FA2EEA654E59685951980Eef61"; 
+// ⚠️ Địa chỉ Factory của bạn

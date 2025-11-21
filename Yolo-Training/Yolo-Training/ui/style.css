@@ -1,0 +1,332 @@
+/* === BẮT ĐẦU CSS GỘP TỪ V18 VÀ V13 === */
+/* (Giữ nguyên toàn bộ CSS từ file V23 của bạn, vì nó đã bao gồm các style của V20) */
+:root {
+    --primary-color: #3b82f6; /* Blue 500 */
+    --primary-accent: #22c55e; /* green-500 (TỪ V18) */
+    --bg-color: #111827; /* Gray 900 */
+    --card-color: #1f2937; /* Gray 800 */
+    --sidebar-color: #1e293b; /* V17/18 sidebar color (TỪ V18) */
+    --border-color: #374151; /* Gray 700 */
+    --text-primary: #f9fafb; /* Gray 50 */
+    --text-secondary: #d1d5db; /* Gray 300 */
+    --text-muted: #94a3b8; /* V17/18 muted (TỪ V18) */
+    --danger-color: #ef4444; /* Red 500 */
+    --success-color: #22c55e; /* Green 500 */
+}
+html, body { height: 100%; overflow: hidden; }
+body { background-color: var(--bg-color); color: var(--text-primary); font-family: 'Roboto', sans-serif; }
+.card { background-color: var(--card-color); border: 1px solid var(--border-color); border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.2); transition: all 0.3s ease-in-out; }
+.btn { padding: 10px 20px; font-weight: 500; border-radius: 0.5rem; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; } /* Thêm gap: 0.5rem từ V18 */
+.btn:disabled { cursor: not-allowed; opacity: 0.5; }
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.15); }
+.btn-danger { background-color: var(--danger-color); color: white; }
+.btn-danger:hover:not(:disabled) { filter: brightness(1.15); }
+.btn-success { background-color: var(--success-color); color: white; }
+.btn-success:hover:not(:disabled) { filter: brightness(1.15); }
+.btn-secondary { background-color: #4b5563; color: white; }
+.btn-secondary:hover:not(:disabled) { background-color: #6b7280; }
+/* Thêm style cho nút warning (Deactivate) */
+.btn-warning { background-color: #f59e0b; color: white; } /* Amber 500 */
+.btn-warning:hover:not(:disabled) { filter: brightness(1.15); }
+
+.form-input { background-color: #374151; border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 0.5rem; transition: all 0.2s ease; }
+.form-input:focus { outline: none; box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--primary-color); }
+.loader-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.loader-spinner { width: 50px; height: 50px; border: 5px solid #fff; border-bottom-color: var(--primary-color); border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+@keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.custom-scrollbar::-webkit-scrollbar { width: 8px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: var(--card-color); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 4px; }
+.modal-hidden { display: none; opacity: 0; }
+.modal-visible { display: flex; animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+ 
+.view-hidden { display: none !important; } /* TỪ V18 */
+
+/* === BỔ SUNG: STYLES CHO SIDEBAR NỔI (TỪ V18) === */
+.nav-link { display: flex; align-items: center; padding: 0.75rem 1.25rem; border-radius: 0.5rem; color: var(--text-muted); font-weight: 500; transition: all 0.2s ease; text-decoration: none; }
+.nav-link:hover { background-color: #334155; color: var(--text-primary); }
+.nav-link.active { background-color: var(--primary-accent); color: white; }
+.nav-link svg { width: 1.25rem; height: 1.25rem; margin-right: 0.75rem; }
+ 
+#floating-sidebar {
+    background-color: var(--sidebar-color);
+    transition: transform 0.3s ease-in-out;
+    transform: translateX(0%);
+}
+#floating-sidebar.is-hidden {
+    transform: translateX(-100%);
+}
+/* === KẾT THÚC BỔ SUNG CSS TỪ V18 === */
+
+/* === CSS DETECTION MARKER (GIỮ NGUYÊN TỪ V20/V13) === */
+/* File V23 của bạn đã có phần này, tôi giữ nguyên nó */
+.detection-marker {
+    position: absolute;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+.detection-marker::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    animation: wave 2s infinite ease-out;
+}
+@keyframes wave {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(3); opacity: 0; }
+}
+
+/* Fruit Details Animation Container (GIỮ NGUYÊN TỪ V20/V13) */
+/* File V23 của bạn đã có phần này, tôi giữ nguyên nó */
+#fruit-details-container {
+    position: absolute;
+    width: 320px; height: 320px;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+#fruit-details-container.visible { opacity: 1; }
+#fruit-details-container .info-ring {
+    position: absolute;
+    pointer-events: auto;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background-color: rgba(17, 24, 39, 0.5);
+    backdrop-filter: blur(4px);
+    text-shadow: 0 0 5px black;
+}
+#fruit-details-container .info-ring-svg {
+    position: absolute;
+    animation: rotate 20s linear infinite;
+}
+#fruit-details-container circle {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.8);
+    stroke-width: 1.5;
+    stroke-dasharray: 220;
+    stroke-dashoffset: 220;
+    animation: draw-circle 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+#fruit-details-container .info-value {
+    font-size: 1rem; font-weight: 500;
+}
+#fruit-details-container .info-label {
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);
+}
+#fruit-details-container .connector-line {
+    stroke: rgba(255, 255, 255, 0.8);
+    stroke-width: 1;
+    opacity: 0.4;
+}
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes draw-circle { to { stroke-dashoffset: 0; } }
+/* === KẾT THÚC CSS === */
+ 
+/* === BỔ SUNG: STYLES CHO TIMELINE LỊCH SỬ (Giữ nguyên V23) === */
+#history-timeline {
+    position: relative;
+    padding: 1rem 0;
+    /* Đường kẻ chấm chấm dọc */
+    border-left: 3px dotted var(--border-color);
+    margin-left: 1rem; /* Khoảng cách cho chấm tròn */
+}
+.timeline-item {
+    position: relative;
+    padding-left: 2.5rem; /* 40px */
+    padding-bottom: 1.5rem; /* 24px */
+}
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+/* Chấm tròn trên đường kẻ */
+.timeline-dot {
+    position: absolute;
+    left: -11px; /* (20px / 2) - 1.5px (nửa border) = -11.5px */
+    top: 4px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    border: 3px solid var(--bg-color); /* Tạo hiệu ứng "nổi" lên trên */
+}
+/* Thẻ nội dung (hình chữ nhật) */
+.timeline-card {
+    background-color: var(--card-color);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+/* === KẾT THÚC BỔ SUNG CSS TIMELINE === */
+
+/* === BỔ SUNG: TOAST NOTIFICATION (Giữ nguyên V23) === */
+#toast-notification {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background-color: var(--sidebar-color);
+    color: var(--text-primary);
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 100;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+#toast-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+#toast-notification.success { border-left: 4px solid var(--success-color); }
+#toast-notification.error { border-left: 4px solid var(--danger-color); }
+/* === KẾT THÚC TOAST === */
+
+/* === BỔ SUNG: STYLES CHO SOUND DETECT === */
+
+/* Màu chữ cho icon cảnh báo */
+.text-warning {
+    color: var(--primary-accent); /* Dùng màu xanh lá cho nổi bật */
+}
+
+/* Style cho vùng sound wave. 
+   Dùng background-color của card để canvas vẽ đè lên 
+*/
+#sound-visualizer-container {
+    background-color: var(--card-color);
+    border: 1px solid var(--border-color);
+}
+
+/* Style cho label hiển thị kết quả */
+#sound-label {
+    min-height: 2.5rem; /* Giữ chiều cao ổn định */
+    transition: color 0.3s ease;
+}
+
+/* Đổi màu label khi phát hiện chim/chuột */
+#sound-label.detected {
+    color: var(--danger-color); /* Màu đỏ cảnh báo */
+    animation: pulse 1s infinite;
+}
+
+/* Animation nhấp nháy cho text cảnh báo */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+/* === BỔ SUNG: STYLES CHO SOUND DETECT === */
+.text-warning {
+    color: var(--primary-accent);
+}
+#sound-visualizer-container {
+    background-color: var(--card-color);
+    border: 1px solid var(--border-color);
+}
+#sound-label {
+    min-height: 2.5rem;
+    transition: color 0.3s ease;
+}
+#sound-label.detected {
+    color: var(--danger-color);
+    animation: pulse 1s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* === BỔ SUNG: STYLES CHO AI-TOOL === */
+#ai-image-preview img {
+    max-width: 100%;
+    max-height: 100%; /* Giới hạn chiều cao */
+    width: auto;      /* Để giữ tỷ lệ */
+    height: auto;     /* Để giữ tỷ lệ */
+    object-fit: contain; /* Hiển thị toàn bộ ảnh */
+    border-radius: 0.5rem; /* Khớp với card */
+    display: block; /* Loại bỏ khoảng trắng thừa bên dưới */
+    margin: auto; /* Căn giữa ảnh nếu nó nhỏ hơn khung */
+}
+
+/* Màu chữ/icon cho kết quả phân tích */
+.status-healthy {
+    color: var(--success-color); /* Màu xanh lá */
+}
+.status-diseased {
+    color: var(--danger-color); /* Màu đỏ */
+}
+.status-unknown {
+    color: #f59e0b; /* Màu vàng (Amber 500) */
+}
+
+
+/* Icon cho kết quả */
+.status-icon {
+    width: 2rem; /* 32px */
+    height: 2rem; /* 32px */
+    flex-shrink: 0;
+}
+
+/* Styling cho code (tên file) trong kết quả */
+#ai-results-content-real code {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.1em 0.4em;
+    border-radius: 0.25rem;
+    font-size: 0.9em;
+}
+/* === BỔ SUNG: STYLES KHẮC PHỤC LỖI CHIỀU CAO AI-TOOL (QUAN TRỌNG) === */
+/* Đảm bảo Container Grid hoạt động chính xác */
+#ai-view > div { /* div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full" */
+    display: grid;
+    height: 100%;
+    gap: 1.5rem; /* 24px */
+    grid-template-columns: 1fr;
+    min-height: 0; /* Quan trọng cho Flex/Grid con */
+}
+@media (min-width: 1024px) {
+    #ai-view > div {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Container Cột (Thay thế flex flex-col h-full) */
+.ai-tool-col {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0; /* Rất quan trọng: Ngăn các phần tử flex con mở rộng vô hạn */
+}
+
+/* Phần tử cần chiếm hết không gian còn lại (Thay thế flex-grow) */
+.ai-tool-content-grow {
+    flex-grow: 1; /* Chiếm hết không gian còn lại */
+    flex-basis: 0; /* Đặt chiều cao cơ sở bằng 0 để flex-grow tính toán đúng */
+    min-height: 300px; /* Giữ nguyên kích thước tối thiểu */
+    position: relative;
+    overflow: hidden; /* Ngăn nội dung con tràn ra ngoài */
+}
+
+/* Nội dung cuộn */
+#ai-results-content-real {
+    height: 100%; /* Chiếm toàn bộ chiều cao của .ai-tool-content-grow */
+    overflow-y: auto; /* Kích hoạt thanh cuộn dọc */
+    /* ... các style khác đã có ... */
+}
+/* === KẾT THÚC CSS KHẮC PHỤC === */

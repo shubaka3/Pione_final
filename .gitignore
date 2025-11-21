@@ -1,0 +1,27 @@
+# Ignore all virtual environment folders at any level
+env/
+venv/
+.env/
+.venv/
+
+# Match env folders anywhere in the project
+**/env/
+**/venv/
+**/.env/
+**/.venv/
+
+# Sometimes venvs have custom names like env310, venv3.10
+**/env*/
+**/venv*/
+
+# Python cache
+__pycache__/
+**/__pycache__/
+
+# IDE folders
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

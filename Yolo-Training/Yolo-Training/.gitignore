@@ -1,0 +1,44 @@
+# ----------------------------------------------------------------------
+# Tệp tin và thư mục chung của Python
+# ----------------------------------------------------------------------
+
+# Bỏ qua các tệp bytecode
+*.pyc
+__pycache__/
+
+# Bỏ qua thư mục môi trường ảo (Virtual Environment)
+# Thường được đặt tên là .venv, venv, env
+.venv/
+venv/
+env/
+
+# Bỏ qua các tệp cài đặt và build
+build/
+dist/
+*.egg-info
+.tox/
+
+# Bỏ qua các tệp nhật ký
+*.log
+
+# ----------------------------------------------------------------------
+# Tệp và thư mục liên quan đến Machine Learning/YOLOv8
+# ----------------------------------------------------------------------
+
+# Thư mục chứa các kết quả thử nghiệm và trọng số của YOLOv8
+# Rất quan trọng để bỏ qua vì chúng thường có dung lượng lớn
+runs/
+
+# Các thư mục chứa dữ liệu và phiên bản dataset
+# Thường là kết quả của quá trình tiền xử lý hoặc huấn luyện
+dataset/
+dataset1/
+
+# Thư mục huấn luyện (nếu bạn tạo thư mục riêng biệt cho quá trình train)
+train/
+val/
+# ----------------------------------------------------------------------
+# Tệp tin và thư mục cụ thể của macOS / Windows / Linux (Tùy chọn)
+# ----------------------------------------------------------------------
+.DS_Store
+Thumbs.db

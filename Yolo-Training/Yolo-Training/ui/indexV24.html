@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="vi"> <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Nâng cấp phiên bản title -->
+    <title>MDDC - Plant Management (V23 - Hợp nhất WebRTC/AI)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* === BẮT ĐẦU CSS GỘP TỪ V18 VÀ V13 === */
+        /* (Giữ nguyên toàn bộ CSS từ file V23 của bạn, vì nó đã bao gồm các style của V20) */
+        :root {
+            --primary-color: #3b82f6; /* Blue 500 */
+            --primary-accent: #22c55e; /* green-500 (TỪ V18) */
+            --bg-color: #111827; /* Gray 900 */
+            --card-color: #1f2937; /* Gray 800 */
+            --sidebar-color: #1e293b; /* V17/18 sidebar color (TỪ V18) */
+            --border-color: #374151; /* Gray 700 */
+            --text-primary: #f9fafb; /* Gray 50 */
+            --text-secondary: #d1d5db; /* Gray 300 */
+            --text-muted: #94a3b8; /* V17/18 muted (TỪ V18) */
+            --danger-color: #ef4444; /* Red 500 */
+            --success-color: #22c55e; /* Green 500 */
+        }
+        html, body { height: 100%; overflow: hidden; }
+        body { background-color: var(--bg-color); color: var(--text-primary); font-family: 'Roboto', sans-serif; }
+        .card { background-color: var(--card-color); border: 1px solid var(--border-color); border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.2); transition: all 0.3s ease-in-out; }
+        .btn { padding: 10px 20px; font-weight: 500; border-radius: 0.5rem; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; } /* Thêm gap: 0.5rem từ V18 */
+        .btn:disabled { cursor: not-allowed; opacity: 0.5; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover:not(:disabled) { filter: brightness(1.15); }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-danger:hover:not(:disabled) { filter: brightness(1.15); }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-success:hover:not(:disabled) { filter: brightness(1.15); }
+        .btn-secondary { background-color: #4b5563; color: white; }
+        .btn-secondary:hover:not(:disabled) { background-color: #6b7280; }
+        /* Thêm style cho nút warning (Deactivate) */
+        .btn-warning { background-color: #f59e0b; color: white; } /* Amber 500 */
+        .btn-warning:hover:not(:disabled) { filter: brightness(1.15); }
+
+        .form-input { background-color: #374151; border: 1px solid var(--border-color); color: var(--text-primary); padding: 10px; border-radius: 0.5rem; transition: all 0.2s ease; }
+        .form-input:focus { outline: none; box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--primary-color); }
+        .loader-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: center; justify-content: center; }
+        .loader-spinner { width: 50px; height: 50px; border: 5px solid #fff; border-bottom-color: var(--primary-color); border-radius: 50%; display: inline-block; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--card-color); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 4px; }
+        .modal-hidden { display: none; opacity: 0; }
+        .modal-visible { display: flex; animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .view-hidden { display: none !important; } /* TỪ V18 */
+
+        /* === BỔ SUNG: STYLES CHO SIDEBAR NỔI (TỪ V18) === */
+        .nav-link { display: flex; align-items: center; padding: 0.75rem 1.25rem; border-radius: 0.5rem; color: var(--text-muted); font-weight: 500; transition: all 0.2s ease; text-decoration: none; }
+        .nav-link:hover { background-color: #334155; color: var(--text-primary); }
+        .nav-link.active { background-color: var(--primary-accent); color: white; }
+        .nav-link svg { width: 1.25rem; height: 1.25rem; margin-right: 0.75rem; }
+        
+        #floating-sidebar {
+            background-color: var(--sidebar-color);
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(0%);
+        }
+        #floating-sidebar.is-hidden {
+            transform: translateX(-100%);
+        }
+        /* === KẾT THÚC BỔ SUNG CSS TỪ V18 === */
+
+        /* === CSS DETECTION MARKER (GIỮ NGUYÊN TỪ V20/V13) === */
+        /* File V23 của bạn đã có phần này, tôi giữ nguyên nó */
+        .detection-marker {
+            position: absolute;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        .detection-marker::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            animation: wave 2s infinite ease-out;
+        }
+        @keyframes wave {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        /* Fruit Details Animation Container (GIỮ NGUYÊN TỪ V20/V13) */
+        /* File V23 của bạn đã có phần này, tôi giữ nguyên nó */
+        #fruit-details-container {
+            position: absolute;
+            width: 320px; height: 320px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #fruit-details-container.visible { opacity: 1; }
+        #fruit-details-container .info-ring {
+            position: absolute;
+            pointer-events: auto;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background-color: rgba(17, 24, 39, 0.5);
+            backdrop-filter: blur(4px);
+            text-shadow: 0 0 5px black;
+        }
+        #fruit-details-container .info-ring-svg {
+            position: absolute;
+            animation: rotate 20s linear infinite;
+        }
+        #fruit-details-container circle {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.8);
+            stroke-width: 1.5;
+            stroke-dasharray: 220;
+            stroke-dashoffset: 220;
+            animation: draw-circle 1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        #fruit-details-container .info-value {
+            font-size: 1rem; font-weight: 500;
+        }
+        #fruit-details-container .info-label {
+            font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);
+        }
+        #fruit-details-container .connector-line {
+            stroke: rgba(255, 255, 255, 0.8);
+            stroke-width: 1;
+            opacity: 0.4;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes draw-circle { to { stroke-dashoffset: 0; } }
+        /* === KẾT THÚC CSS === */
+        
+        /* === BỔ SUNG: STYLES CHO TIMELINE LỊCH SỬ (Giữ nguyên V23) === */
+        #history-timeline {
+            position: relative;
+            padding: 1rem 0;
+            /* Đường kẻ chấm chấm dọc */
+            border-left: 3px dotted var(--border-color);
+            margin-left: 1rem; /* Khoảng cách cho chấm tròn */
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 2.5rem; /* 40px */
+            padding-bottom: 1.5rem; /* 24px */
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        /* Chấm tròn trên đường kẻ */
+        .timeline-dot {
+            position: absolute;
+            left: -11px; /* (20px / 2) - 1.5px (nửa border) = -11.5px */
+            top: 4px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            border: 3px solid var(--bg-color); /* Tạo hiệu ứng "nổi" lên trên */
+        }
+        /* Thẻ nội dung (hình chữ nhật) */
+        .timeline-card {
+            background-color: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        /* === KẾT THÚC BỔ SUNG CSS TIMELINE === */
+
+        /* === BỔ SUNG: TOAST NOTIFICATION (Giữ nguyên V23) === */
+        #toast-notification {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background-color: var(--sidebar-color);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+        #toast-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #toast-notification.success { border-left: 4px solid var(--success-color); }
+        #toast-notification.error { border-left: 4px solid var(--danger-color); }
+        /* === KẾT THÚC TOAST === */
+    </style>
+</head>
+<body>
+    <!-- Giữ nguyên toàn bộ HTML từ file V23 của bạn -->
+    <div id="loader" class="loader-overlay view-hidden"> <div class="loader-spinner"></div>
+    </div>
+
+    <!-- Toast Notification Element -->
+    <div id="toast-notification">Notification message</div>
+
+    <aside id="floating-sidebar" class="w-64 flex-shrink-0 flex flex-col p-4 fixed top-0 left-0 h-full z-50 is-hidden">
+        <div class="text-center py-4 border-b border-gray-700">
+             <h1 class="text-2xl font-bold text-white tracking-wide">MDDC</h1>
+             <p class="text-sm text-gray-400">Plant Management</p>
+        </div>
+        <nav id="main-nav" class="mt-8 space-y-2 flex-grow">
+            <a href="#" class="nav-link active" data-view="dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-link" data-view="analytics">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h12A2.25 2.25 0 0020.25 14.25V3M3.75 21h16.5M16.5 3.75h.008v.008h-.008V3.75z" /></svg>
+                <span>Analytics</span>
+            </a>
+            <a href="#" class="nav-link" data-view="settings">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.424.35.534.954.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.333.183-.582.495-.645.87l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995s-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076.124.072-.044.146-.087.22-.128.332-.183.582.495.645.87l.213-1.28z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span>Settings</span>
+            </a>
+            <a href="#" class="nav-link" data-view="ai">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.424.35.534.954.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.333.183-.582.495-.645.87l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995s-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076.124.072-.044.146-.087.22-.128.332-.183.582.495.645.87l.213-1.28z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <!-- Trang này được yêu cầu không đụng đến -->
+                <span>AI-Tool</span>
+            </a>
+        </nav>
+        <a href="#" id="logout-btn" class="nav-link mt-4 border border-gray-700"> <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
+            <span>Đăng xuất</span>
+        </a>
+    </aside>
+
+    <div id="login-view" class="h-full w-full flex items-center justify-center p-4"> <div class="w-full max-w-md p-8 space-y-8 card">
+            <h1 class="text-3xl font-bold text-center text-white">MDDC Login</h1>
+            <form id="login-form" class="space-y-6">
+                <input id="username" type="text" required class="w-full form-input" placeholder="Username" value="admin">
+                <input id="password" type="password" required class="w-full form-input" placeholder="Password" value="123">
+                <!-- Thêm vùng hiển thị lỗi -->
+                <p id="login-error" class="text-red-400 text-sm view-hidden"></p>
+                <button type="submit" class="w-full btn btn-primary">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="app-view" class="h-full w-full flex flex-col view-hidden"> <nav class="w-full p-4 flex justify-between items-center border-b border-gray-700 bg-gray-800/70 backdrop-blur-md flex-shrink-0 z-20">
+            <div class="flex items-center gap-4">
+                <button id="sidebar-toggle-btn" class="btn btn-secondary p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+                </button>
+                 <h1 id="view-title" class="text-2xl font-bold text-white tracking-wide">Dashboard</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="welcome-user" class="text-lg hidden sm:block"></span>
+                </div>
+        </nav>
+
+        <div id="content-area" class="flex-grow relative">
+            <main id="dashboard-view" class="absolute inset-0 p-4 sm:p-6 overflow-y-auto custom-scrollbar"> <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <h2 class="text-3xl font-bold text-white">Dashboard</h2>
+                    <button id="add-product-btn" class="btn btn-success w-full sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        Add New Plant
+                    </button>
+                </div>
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Sẽ được điền bằng API -->
+                </div>
+            </main>
+
+            <main id="detail-view" class="absolute inset-0 p-4 sm:p-6 overflow-y-auto view-hidden flex flex-col custom-scrollbar"> <button id="back-to-dashboard-btn" class="btn btn-secondary mb-4 px-4 py-2 text-sm self-start flex-shrink-0">&larr; Back to Dashboard</button>
+                <div class="flex-grow grid grid-cols-1 lg:grid-cols-10 gap-6">
+                    <div class="lg:col-span-7 flex flex-col card p-4 gap-4">
+                        <div class="flex justify-between items-center flex-shrink-0">
+                            <h2 id="tree-name" class="text-xl font-bold text-white"></h2>
+                            <div class="flex gap-2">
+                                <button id="view-mode-normal" class="btn btn-secondary px-3 py-1 text-sm">Normal View</button>
+                                <button id="view-mode-ai" class="btn btn-primary px-3 py-1 text-sm">AI Detection</button>
+                            </div>
+                        </div>
+                        <div class="flex-grow relative rounded-lg overflow-hidden min-h-[300px] sm:min-h-[400px] bg-black" id="video-container">
+                            <video id="realtime-video" class="absolute top-0 left-0 w-full h-full object-contain" autoplay playsinline muted></video>
+                            <canvas id="overlay-canvas" class="absolute top-0 left-0 w-full h-full object-contain pointer-events-none opacity-0"></canvas> <div id="detection-container" class="absolute top-0 left-0 w-full h-full"></div>
+                            <div id="stream-status" class="absolute inset-0 flex items-center justify-center text-gray-400 text-lg">Waiting for video stream...</div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-3 flex flex-col card p-6">
+                        <!-- === THÊM MỚI: NÚT HÀNH ĐỘNG === -->
+                        <div id="plant-actions" class="mb-4 pt-2 space-y-3">
+                            <h3 class="text-xl font-bold text-white border-b border-gray-600 pb-3 mb-4 flex-shrink-0">Điều khiển</h3>
+                            <button id="water-plant-btn" class="btn btn-primary w-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625a3.375 3.375 0 00-3.375 3.375v11.25c0 1.036.84 1.875 1.875 1.875h12.75c1.036 0 1.875-.84 1.875-1.875V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+                                <span>Tưới cây (100ml)</span>
+                            </button>
+                            <button id="fertilize-plant-btn" class="btn btn-success w-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375" /></svg>
+                                <span>Bón phân (10g)</span>
+                            </button>
+                            <!-- THÊM MỚI: Nút Thu Hoạch -->
+                            <button id="harvest-plant-btn" class="btn btn-warning w-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.5 2.5m2.5-2.5l2.5-2.5M13.684 16.6l-2.5-2.5m2.5 2.5l2.5 2.5m-5-5l-2.5-2.5m2.5 2.5l-2.5 2.5M15.042 21.672L13.684 16.6M11.625 6.375l-1.68-1.68a.75.75 0 00-1.06 0l-1.68 1.68m3.36 0l1.68 1.68a.75.75 0 010 1.06l-1.68 1.68m-3.36 0l-1.68-1.68a.75.75 0 00-1.06 0l-1.68 1.68m3.36 0l1.68 1.68a.75.75 0 010 1.06l-1.68 1.68" /></svg>
+                                <span>Thu hoạch</span>
+                            </button>
+                            <!-- THÊM MỚI: Nút Đổ đầy bình chứa -->
+                            <button id="fill-water-btn" class="btn btn-secondary w-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                                <span>Đổ đầy bình chứa</span>
+                            </button>
+                        </div>
+                        <!-- === KẾT THÚC THÊM MỚI === -->
+
+                        <h3 class="text-xl font-bold text-white border-b border-gray-600 pb-3 mb-4 flex-shrink-0">Thông tin cây trồng</h3> <div class="space-y-4 flex-grow custom-scrollbar overflow-y-auto pr-2">
+                            <div class="flex justify-between items-center"><span class="text-gray-400">Thời gian:</span><span id="plant-time" class="text-white font-medium text-lg">--:--:--</span></div>
+                            <!-- TRẢ LẠI: Layout cũ cho thời tiết -->
+                            <div class="flex justify-between items-center"><span class="text-gray-400">Thời tiết:</span><span id="plant-weather" class="text-white font-medium">--</span></div>
+                            <div class="flex justify-between items-center"><span class="text-gray-400">Nhiệt độ:</span><span id="plant-temp" class="text-white font-medium">-- °C</span></div>
+                            <div class="flex justify-between items-center"><span class="text-gray-400">Độ ẩm:</span><span id="plant-humidity" class="text-white font-medium">-- %</span></div>
+                            <div class="flex justify-between items-center"><span class="text-gray-400">Ánh sáng:</span><span id="plant-light" class="text-white font-medium">-- lux</span></div>
+                            <div class="flex justify-between items-center"><span class="text-gray-400">Mực nước:</span><span id="plant-water" class="text-white font-medium">-- %</span></div>
+                            <div class="flex justify-between items-center"><span class="text-gray-400">Vị trí:</span><span id="plant-location" class="text-white font-medium">--</span></div>
+                        </div>
+                        
+                        <div id="ai-results-container" class="mt-4 pt-4 border-t border-gray-600">
+                            <h4 class="text-md font-semibold text-white mb-2">Kết quả phân tích AI</h4>
+                            <div id="ai-results-content" class="text-gray-400 text-sm space-y-1">
+                                <p>Chưa có dữ liệu.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <main id="analytics-view" class="absolute inset-0 p-4 sm:p-6 view-hidden custom-scrollbar overflow-y-auto">
+                
+                <div id="analytics-plant-grid-view">
+                    <h2 class="text-3xl font-bold text-white mb-6">Chọn cây để xem lịch sử</h2>
+                    <div id="analytics-product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <!-- Sẽ được điền bằng API (giống dashboard) -->
+                    </div>
+                </div>
+
+                <div id="analytics-history-view" class="view-hidden">
+                    <button id="analytics-back-btn" class="btn btn-secondary mb-4 px-4 py-2 text-sm self-start flex-shrink-0">&larr; Quay lại danh sách</button>
+                    <h2 id="analytics-history-title" class="text-3xl font-bold text-white mb-6"></h2>
+                    
+                    <div id="history-timeline-container" class="max-w-3xl mx-auto">
+                        <ol id="history-timeline">
+                            <!-- Sẽ được điền bằng API -->
+                        </ol>
+                    </div>
+                </div>
+
+            </main>
+
+            <main id="settings-view" class="absolute inset-0 p-4 sm:p-6 view-hidden">
+                <div class="card h-full w-full flex items-center justify-center">
+                    <h1 class="text-4xl font-bold text-gray-500">Settings View Coming Soon</h1>
+                </div>
+            </main>
+            <main id="ai-view" class="absolute inset-0 p-4 sm:p-6 view-hidden">
+                <!-- Giữ nguyên theo yêu cầu -->
+                <iframe src="ai-tools.html" class="w-full h-full border-0"></iframe>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Cập nhật Modal để khớp với API (bỏ productID, thêm species, location) -->
+    <div id="add-product-modal" class="modal-hidden fixed inset-0 bg-black/70 items-center justify-center z-50 p-4">
+        <div class="card w-full max-w-lg p-6 relative">
+            <h3 class="text-2xl font-bold text-white mb-4">Add New Plant</h3>
+            <form id="add-product-form" class="space-y-4">
+                 <input id="productName" type="text" required class="w-full form-input" placeholder="Plant Name (e.g., Cây Táo 01)">
+                 <input id="productSpecies" type="text" required class="w-full form-input" placeholder="Plant Species (e.g., Táo)">
+                 <input id="productLocation" type="text" required class="w-full form-input" placeholder="Location (e.g., Lô A, Giàn 01)">
+                 <!-- API yêu cầu planting_date, ta sẽ tự động gán ngày hôm nay trong JS -->
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" id="add-product-cancel-btn" class="btn btn-danger">Cancel</button>
+                    <button type="submit" class="btn btn-success">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<script src="https://vmentor.emg.edu.vn/ui/embed.js?encryption_api=f3c49621-cc62-457c-8471-2dd048983e7d&encryption_secret=200feb74-12eb-43ee-b674-902fc609f3be&email=user@example.com"></script>
+
+<script type="module">
+// --- DOM Elements (GỘP TỪ V13 VÀ V18) ---
+// (Giữ nguyên từ V23)
+const loginView = document.getElementById('login-view'), 
+      appView = document.getElementById('app-view'),
+      contentArea = document.getElementById('content-area'), // TỪ V18
+      dashboardView = document.getElementById('dashboard-view'), 
+      detailView = document.getElementById('detail-view'),
+      productGrid = document.getElementById('product-grid'), 
+      loginForm = document.getElementById('login-form'),
+      loginError = document.getElementById('login-error'), // Thêm
+      logoutBtn = document.getElementById('logout-btn'), 
+      welcomeUser = document.getElementById('welcome-user'),
+      backToDashboardBtn = document.getElementById('back-to-dashboard-btn'),
+      treeName = document.getElementById('tree-name'),
+      addProductModal = document.getElementById('add-product-modal'), 
+      addProductBtn = document.getElementById('add-product-btn'),
+      addProductForm = document.getElementById('add-product-form'), 
+      addProductCancelBtn = document.getElementById('add-product-cancel-btn'),
+      loader = document.getElementById('loader'),
+      realtimeVideo = document.getElementById('realtime-video'),
+      overlayCanvas = document.getElementById('overlay-canvas'),
+      streamStatus = document.getElementById('stream-status'),
+      viewModeNormalBtn = document.getElementById('view-mode-normal'),
+      viewModeAiBtn = document.getElementById('view-mode-ai'),
+      videoContainer = document.getElementById('video-container'), 
+      detectionContainer = document.getElementById('detection-container');
+// === THÊM DOM CHO ANALYTICS ===
+const analyticsView = document.getElementById('analytics-view'),
+      analyticsPlantGridView = document.getElementById('analytics-plant-grid-view'),
+      analyticsProductGrid = document.getElementById('analytics-product-grid'),
+      analyticsHistoryView = document.getElementById('analytics-history-view'),
+      analyticsBackBtn = document.getElementById('analytics-back-btn'),
+      analyticsHistoryTitle = document.getElementById('analytics-history-title'),
+      historyTimeline = document.getElementById('history-timeline');
+// --- BỔ SUNG DOM TỪ V18 (VÀ V13) ---
+const floatingSidebar = document.getElementById('floating-sidebar'), // TỪ V18
+      sidebarToggleBtn = document.getElementById('sidebar-toggle-btn'), // TỪ V18
+      mainNav = document.getElementById('main-nav'), // TỪ V18
+      viewTitle = document.getElementById('view-title'), // TỪ V18
+      plantTimeEl = document.getElementById('plant-time'),
+      plantWeatherEl = document.getElementById('plant-weather'),
+      plantTempEl = document.getElementById('plant-temp'),
+      plantHumidityEl = document.getElementById('plant-humidity'),
+      plantLightEl = document.getElementById('plant-light'),
+      plantWaterEl = document.getElementById('plant-water'),
+      plantLocationEl = document.getElementById('plant-location'),
+      aiResultsContent = document.getElementById('ai-results-content'); // TỪ V18
+// --- BỔ SUNG DOM CHO NÚT HÀNH ĐỘNG & TOAST ---
+const waterPlantBtn = document.getElementById('water-plant-btn');
+const fertilizePlantBtn = document.getElementById('fertilize-plant-btn');
+const harvestPlantBtn = document.getElementById('harvest-plant-btn'); // Thêm
+const fillWaterBtn = document.getElementById('fill-water-btn'); // THÊM MỚI
+const toast = document.getElementById('toast-notification');
+let toastTimeout = null;
+
+// --- API Configuration ---
+// (Giữ nguyên toàn bộ từ V23)
+const API_BASE_URL = "https://5aa4cb3af50b.ngrok-free.app"; 
+const WEBRTC_URL_BASE_WS = `wss://f750c3a037cf.ngrok-free.app/stream/ws`; 
+const WORKFLOW_WATERING_URL = "https://workflow.emg.edu.vn:5678/webhook/watering-plants";
+const WORKFLOW_FILL_WATER_URL = "https://workflow.emg.edu.vn:5678/webhook/fillwater"; 
+
+// --- State Management ---
+// (Giữ nguyên từ V23)
+let state = {
+    isLoggedIn: false,
+    currentUser: null,
+    token: null, // Thêm token
+    products: [], // Bắt đầu với mảng rỗng, sẽ tải từ API
+    selectedProductId: null,
+    isAiDetectionActive: false,
+};
+
+let clockInterval = null; 
+let dataFetchInterval = null; 
+
+// --- KHÔI PHỤC: WebRTC Service (Giữ nguyên từ V20/V23) ---
+// Logic này đã có trong V23, tôi đảm bảo nó được giữ nguyên.
+const WebRTCService = {
+    ws: null,
+    pc: null,
+    videoElement: null,
+    canvasContext: null,
+    lastDetections: {},
+    WEBSOCKET_URL_BASE: WEBRTC_URL_BASE_WS, 
+
+    connect: function(roomName, videoEl, canvasEl) {
+        this.videoElement = videoEl;
+        this.canvasContext = canvasEl.getContext('2d');
+        const clientId = `viewer_${crypto.randomUUID()}`;
+        const fullUrl = `${this.WEBSOCKET_URL_BASE}/${roomName}/${clientId}`;
+        streamStatus.textContent = `Connecting to room '${roomName}'...`;
+        
+        try {
+            this.ws = new WebSocket(fullUrl);
+        } catch (error) {
+            console.error("WebSocket connection error:", error);
+            streamStatus.textContent = "Failed to connect. (Check URL or network)";
+            return;
+        }
+
+        this.ws.onopen = () => {
+            streamStatus.textContent = "Connected, requesting video...";
+            this.ws.send(JSON.stringify({ type: 'join_as_viewer' }));
+        };
+        this.ws.onmessage = async (event) => {
+            try {
+                const message = JSON.parse(event.data);
+                if (message.type === 'offer') this.handleOffer(message.sdp);
+                else if (message.error) {
+                    streamStatus.textContent = `Server Error: ${message.error}`;
+                    this.disconnect();
+                }
+            } catch (e) {
+                console.warn("Received non-JSON WebSocket message:", event.data);
+            }
+        };
+        this.ws.onclose = () => { streamStatus.textContent = "Connection lost."; this.cleanup(); };
+        this.ws.onerror = (err) => { 
+            console.error("WebSocket Error:", err);
+            streamStatus.textContent = "Connection error."; 
+            this.cleanup(); 
+        };
+    },
+
+    handleOffer: async function(offerSdp) {
+        try {
+            if (this.pc) this.pc.close();
+            this.pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+            this.pc.ontrack = (event) => {
+                if (this.videoElement.srcObject !== event.streams[0]) {
+                    this.videoElement.srcObject = event.streams[0];
+                    streamStatus.style.display = 'none';
+                }
+            };
+            this.pc.onicecandidate = (event) => {
+                if (event.candidate && this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    this.ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate.toJSON() }));
+                }
+            };
+            await this.pc.setRemoteDescription(new RTCSessionDescription(offerSdp));
+            const answer = await this.pc.createAnswer();
+            await this.pc.setLocalDescription(answer);
+            
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.ws.send(JSON.stringify({ type: 'answer', sdp: this.pc.localDescription.toJSON() }));
+            }
+        } catch (error) {
+            console.error("Error handling offer:", error);
+            streamStatus.textContent = "Error setting up video stream.";
+        }
+    },
+    
+    renderStaticDetections: function(detectionData) {
+        // (Giữ nguyên logic V20/V23)
+        if (!this.canvasContext || !detectionData || !detectionData.detections) return;
+        const { detections, orig_shape } = detectionData;
+        const canvas = this.canvasContext.canvas;
+        if (!orig_shape) return;
+        const scaleX = canvas.width / orig_shape[1];
+        const scaleY = canvas.height / orig_shape[0];
+        detections.forEach(det => {
+            // (Code vẽ box V13 đã bị comment out, giữ nguyên)
+        });
+    },
+    
+    cleanup: function() {
+        if (this.pc) { this.pc.close(); this.pc = null; }
+        if (this.videoElement) { this.videoElement.srcObject = null; }
+        if(this.canvasContext) this.canvasContext.clearRect(0, 0, this.canvasContext.canvas.width, this.canvasContext.canvas.height);
+        streamStatus.style.display = 'flex';
+        streamStatus.textContent = "Waiting for video stream...";
+        this.lastDetections = {};
+    },
+    
+    disconnect: function() {
+        if (this.ws) { this.ws.close(); this.ws = null; }
+        this.cleanup();
+    }
+};
+
+// --- UI Functions ---
+// (Giữ nguyên các hàm UI từ V23)
+const showLoader = () => loader.classList.remove('view-hidden');
+const hideLoader = () => loader.classList.add('view-hidden');
+const showAddProductModal = () => { addProductForm.reset(); addProductModal.classList.add('modal-visible'); };
+const hideAddProductModal = () => { addProductModal.classList.remove('modal-visible'); };
+
+// (Hàm Toast từ V23)
+const showToast = (message, type = 'success') => {
+    toast.textContent = message;
+    toast.className = 'show'; // Xóa các class cũ
+    toast.classList.add(type); // Thêm 'success' hoặc 'error'
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+        toast.className = '';
+    }, 3000);
+};
+
+// (Hàm Navigation từ V23)
+const handleNavigation = (viewId) => {
+    contentArea.querySelectorAll('main').forEach(view => view.classList.add('view-hidden'));
+    const activeView = document.getElementById(`${viewId}-view`);
+    if (activeView) {
+        activeView.classList.remove('view-hidden');
+    } else if (viewId === 'login') {
+        loginView.classList.remove('view-hidden');
+        appView.classList.add('view-hidden');
+    } else {
+        loginView.classList.add('view-hidden');
+        appView.classList.remove('view-hidden');
+        if (!activeView) { 
+            document.getElementById('dashboard-view').classList.remove('view-hidden');
+            viewId = 'dashboard';
+        }
+    }
+    
+    mainNav.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.dataset.view === viewId) {
+            link.classList.add('active');
+        }
+    });
+    
+    const activeLink = mainNav.querySelector(`.nav-link[data-view="${viewId}"]`);
+    viewTitle.textContent = activeLink ? activeLink.querySelector('span').textContent : "Login";
+    
+    // Đảm bảo dọn dẹp WebRTC khi rời detail view (Logic từ V20)
+    if (viewId !== 'detail' && (clockInterval || dataFetchInterval)) {
+        WebRTCService.disconnect(); // <-- TỪ V20
+        if (clockInterval) clearInterval(clockInterval);
+        if (dataFetchInterval) clearInterval(dataFetchInterval);
+        clockInterval = null;
+        dataFetchInterval = null;
+    }
+};
+
+// --- Main Logic ---
+
+// (Giữ nguyên các hàm API từ V23)
+const renderDashboard = () => { 
+    if (state.products.length === 0) {
+        productGrid.innerHTML = `<p class="text-gray-400 col-span-full text-center">Không tìm thấy cây nào. Hãy thêm cây mới.</p>`;
+        return;
+    }
+    productGrid.innerHTML = state.products.map(product => `
+        <div class="card p-4 flex flex-col justify-between" data-product-id="${product.productID}">
+            <div class="cursor-pointer product-card-main-area">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-bold text-white">${product.name}</h3>
+                    <span class="text-xs font-bold px-2 py-1 rounded ${product.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">${product.isActive ? 'ACTIVE' : 'INACTIVE'}</span>
+                </div>
+                <p class="text-sm mt-2 text-gray-300">${product.description}</p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-600 flex gap-2">
+                <button class="btn ${product.isActive ? 'btn-warning' : 'btn-success'} btn-toggle-active text-sm py-1 px-3 w-full" data-product-id="${product.productID}" data-current-status="${product.isActive}">
+                    ${product.isActive ? 'Deactivate' : 'Activate'}
+                </button>
+            </div>
+        </div>`).join('');
+};
+
+const authenticatedFetch = async (url, options = {}) => {
+    const headers = new Headers(options.headers || {});
+    if (state.token) {
+        headers.append('Authorization', `Bearer ${state.token}`);
+    }
+    headers.append('ngrok-skip-browser-warning', 'true');
+    const response = await fetch(url, { ...options, headers });
+    if (response.status === 401) {
+        showToast("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.", "error");
+        handleLogout();
+        throw new Error('Unauthorized');
+    }
+    return response;
+};
+
+const fetchTrees = async () => {
+    showLoader();
+    try {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/trees/`);
+        if (!response.ok) throw new Error('Failed to fetch trees');
+        const apiData = await response.json();
+        state.products = apiData.map(tree => ({
+            productID: tree.tree_id,
+            name: tree.name,
+            description: `Loài: ${tree.species || 'N/A'} | Vị trí: ${tree.location || 'N/A'}`,
+            isActive: tree.is_active
+        }));
+        renderDashboard();
+        renderAnalyticsGrid();
+    } catch (error) {
+        if (error.message !== 'Unauthorized') {
+            console.error("Error fetching trees:", error);
+            showToast("Không thể tải danh sách cây.", "error");
+        }
+    } finally {
+        hideLoader();
+    }
+};
+
+const updateTreeStatus = async (treeId, newStatus) => {
+    showLoader();
+    try {
+        const product = state.products.find(p => p.productID == treeId);
+        if (!product) throw new Error('Product not found in state');
+        const descParts = product.description.split(' | ');
+        const species = descParts[0].replace('Loài: ', '');
+        const location = descParts[1].replace('Vị trí: ', '');
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/trees/${treeId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: product.name,
+                species: species,
+                location: location,
+                planting_date: new Date().toISOString().split('T')[0],
+                is_active: newStatus 
+            })
+        });
+        if (!response.ok) throw new Error('Failed to update status');
+        const updatedTree = await response.json();
+        product.isActive = updatedTree.is_active;
+        renderDashboard();
+        renderAnalyticsGrid();
+        showToast(`Cập nhật trạng thái cây ${product.name} thành công.`, 'success');
+    } catch (error) {
+        console.error("Error updating tree status:", error);
+        showToast("Lỗi khi cập nhật trạng thái cây.", 'error');
+    } finally {
+        hideLoader();
+    }
+};
+
+const handleLogin = async (e) => {
+    e.preventDefault();
+    showLoader();
+    loginError.classList.add('view-hidden');
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const loginData = { username: username, password: password };
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/token`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify(loginData)
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Login failed');
+        }
+        const data = await response.json();
+        state.isLoggedIn = true;
+        state.currentUser = { name: username };
+        state.token = data.access_token;
+        welcomeUser.textContent = `Welcome, ${state.currentUser.name}`;
+        await fetchTrees();
+        loginView.classList.add('view-hidden');
+        appView.classList.remove('view-hidden');
+        handleNavigation('dashboard');
+    } catch (error) {
+        console.error("Login error:", error);
+        loginError.textContent = `Lỗi đăng nhập: ${error.message}`;
+        loginError.classList.remove('view-hidden');
+    } finally {
+        hideLoader();
+    }
+};
+
+const handleLogout = () => {
+    handleNavigation('dashboard'); 
+    showAnalyticsGrid(); 
+    state.isLoggedIn = false; 
+    state.currentUser = null;
+    state.token = null;
+    state.products = [];
+    appView.classList.add('view-hidden'); 
+    loginView.classList.remove('view-hidden'); 
+    handleNavigation('login');
+};
+
+// --- KHÔI PHỤC: showDetailView (Gộp V20 + V23) ---
+// Hàm này sẽ gọi cả API (V23) và WebRTC (V20)
+const showDetailView = (productId) => {
+    const product = state.products.find(p => p.productID == productId);
+    if (!product) return;
+    
+    state.selectedProductId = productId;
+    treeName.textContent = `Live Analysis: ${product.name}`;
+    
+    resetDetectionInfo(); 
+    handleNavigation('detail'); 
+    
+    // --- TỪ V20: Khởi chạy WebRTC ---
+    WebRTCService.connect(productId, realtimeVideo, overlayCanvas);
+    
+    updateLiveTime(); 
+    clockInterval = setInterval(updateLiveTime, 1000); 
+    
+    // --- TỪ V23: Gọi API data thật ---
+    fetchTreeDetails(productId); // Hàm này bị thiếu trong V23, nhưng tôi sẽ thêm logic của nó vào fetchLatestReading
+    fetchLatestReading(productId); // Gọi lần đầu
+    dataFetchInterval = setInterval(() => {
+        fetchLatestReading(productId);
+    }, 10000); 
+};
+
+// --- KHÔI PHỤC: hideFruitDetails (Từ V20) ---
+// Hàm này cần thiết cho renderDetections
+const hideFruitDetails = () => { 
+    const details = document.getElementById('fruit-details-container');
+    if (details) {
+        details.classList.remove('visible');
+        setTimeout(() => details.remove(), 300);
+    }
+};
+
+// --- CÁC HÀM CẬP NHẬT THÔNG TIN ---
+const updateLiveTime = () => {
+    if (plantTimeEl) {
+        plantTimeEl.textContent = new Date().toLocaleTimeString('vi-VN');
+    }
+};
+
+// (Giữ nguyên từ V23)
+const updatePlantInfoUI = (data, location = null) => {
+    let weatherText = data.weather_info || '--';
+    if (weatherText === '--' || weatherText.trim() === '') {
+        const hour = new Date().getHours();
+        if (hour >= 6 && hour < 12) weatherText = 'Buổi sáng, trời trong';
+        else if (hour >= 12 && hour < 18) weatherText = 'Buổi chiều, có nắng';
+        else weatherText = 'Buổi tối, trời mát';
+    }
+    plantWeatherEl.textContent = weatherText;
+    plantTempEl.textContent = `${data.temperature_c.toFixed(1)} °C`;
+    plantHumidityEl.textContent = `${data.humidity_pct.toFixed(0)} %`;
+    plantLightEl.textContent = `${data.light_lux.toLocaleString('vi-VN')} lux`;
+    plantWaterEl.textContent = `${data.water_level_pct.toFixed(0)} %`;
+    
+    if (location) {
+        plantLocationEl.textContent = location;
+    }
+};
+
+// (Giê nguyên từ V23, đã bao gồm logic fetchTreeDetails)
+const fetchLatestReading = async (treeId = null) => {
+    const id = treeId || state.selectedProductId;
+    if (!id) return;
+
+    try {
+        // Lấy location từ state (V23 fetchTreeDetails)
+        const product = state.products.find(p => p.productID == id);
+        const location = product ? product.description.split(' | ')[1].replace('Vị trí: ', '') : '--';
+        
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/trees/${id}/readings/?skip=0&limit=1`);
+        if (!response.ok) throw new Error('Failed to fetch readings');
+        
+        const readings = await response.json();
+        
+        if (readings && readings.length > 0) {
+            updatePlantInfoUI(readings[0], location); // Truyền location vào
+        } else {
+            updatePlantInfoUI({
+                temperature_c: 0,
+                humidity_pct: 0,
+                light_lux: 0,
+                water_level_pct: 0,
+                weather_info: ''
+            }, location);
+        }
+    } catch (error) {
+        console.error("Error fetching plant readings:", error);
+    }
+};
+// (Hàm fetchTreeDetails bị thiếu trong V23, nhưng logic của nó đã được gộp vào fetchLatestReading)
+const fetchTreeDetails = (treeId) => {
+    // Logic này đã được gộp vào fetchLatestReading để lấy location
+    // Không cần hàm riêng
+};
+
+
+// (Giữ nguyên các hàm API Workflow và log từ V23)
+const callWorkflowAPI = async (url, treeId) => {
+    if (!treeId) {
+        showToast("Lỗi: Không xác định được ID cây.", 'error');
+        return; 
+    }
+    try {
+        const response = await fetch(url, {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ "tree_id": treeId })
+        });
+        if (!response.ok) {
+            let errorDetail = `Workflow API request failed (Status: ${response.status})`;
+            try {
+                const errorJson = await response.json();
+                errorDetail = errorJson.detail || errorDetail;
+            } catch (e) { /* Bỏ qua */ }
+            throw new Error(errorDetail);
+        }
+        const resultText = await response.text();
+        showToast(resultText || "Yêu cầu thành công!", 'success');
+    } catch (error) {
+        console.error("Error calling workflow API:", error);
+        showToast(`Lỗi API điều khiển: ${error.message}`, 'error');
+    }
+};
+
+const logControlAction = async (commandType, commandValue) => {
+    if (!state.selectedProductId) return;
+    try {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/trees/${state.selectedProductId}/control_history/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                command_type: commandType,
+                command_value: commandValue,
+                status: "Hoàn thành"
+            })
+        });
+        if (!response.ok) throw new Error('Failed to log action');
+        await response.json();
+        showToast(`Đã ghi nhận: ${commandType}`, 'success');
+    } catch (error) {
+        console.error("Error logging control action:", error);
+        showToast(`Lỗi khi ghi nhận ${commandType}`, 'error');
+    }
+};
+
+
+// === CÁC HÀM CHO TRANG ANALYTICS (Giữ nguyên V23) ===
+const showAnalyticsGrid = () => {
+    analyticsHistoryView.classList.add('view-hidden');
+    analyticsPlantGridView.classList.remove('view-hidden');
+    renderAnalyticsGrid(); 
+};
+
+const renderAnalyticsGrid = () => {
+    if (state.products.length === 0) {
+        analyticsProductGrid.innerHTML = `<p class="text-gray-400 col-span-full text-center">Không tìm thấy cây nào.</p>`;
+        return;
+    }
+    analyticsProductGrid.innerHTML = state.products.map(product => `
+        <div class="card p-4 flex flex-col justify-between" data-product-id="${product.productID}">
+            <div class="cursor-pointer product-card-main-area-analytics">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-bold text-white">${product.name}</h3>
+                    <span class="text-xs font-bold px-2 py-1 rounded ${product.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">${product.isActive ? 'ACTIVE' : 'INACTIVE'}</span>
+                </div>
+                <p class="text-sm mt-2 text-gray-300">${product.description}</p>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-600 flex gap-2">
+                <button class="btn ${product.isActive ? 'btn-warning' : 'btn-success'} btn-toggle-active text-sm py-1 px-3 w-full" data-product-id="${product.productID}" data-current-status="${product.isActive}">
+                    ${product.isActive ? 'Deactivate' : 'Activate'}
+                </button>
+            </div>
+        </div>`).join('');
+};
+
+const showAnalyticsHistory = async (productId) => {
+    const product = state.products.find(p => p.productID == productId);
+    if (!product) return;
+    analyticsPlantGridView.classList.add('view-hidden');
+    analyticsHistoryView.classList.remove('view-hidden');
+    analyticsHistoryTitle.textContent = `Lịch sử chăm sóc: ${product.name}`;
+    historyTimeline.innerHTML = '';
+    showLoader();
+    try {
+        const response = await authenticatedFetch(`${API_BASE_URL}/api/trees/${productId}/control_history/`);
+        if (!response.ok) throw new Error('Failed to fetch history');
+        const historyData = await response.json();
+        renderHistoryTimeline(historyData);
+    } catch (error) {
+        console.error("Error fetching history:", error);
+        showToast("Không thể tải lịch sử.", "error");
+        historyTimeline.innerHTML = `<p class="text-gray-400">Lỗi khi tải dữ liệu lịch sử.</p>`;
+    } finally {
+        hideLoader();
+    }
+};
+
+const renderHistoryTimeline = (historyData) => {
+    if (!historyData || historyData.length === 0) {
+        historyTimeline.innerHTML = `<p class="text-gray-400">Không có dữ liệu lịch sử cho cây này.</p>`;
+        return;
+    }
+    historyTimeline.innerHTML = historyData.map(item => {
+        const commandTime = new Date(item.command_time).toLocaleString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const valueText = item.command_value 
+            ? `<p class="text-sm text-gray-400">Giá trị: <span class="text-white">${item.command_value}</span></p>` 
+            : '';
+        const statusText = item.status
+            ? `<p class="text-sm text-gray-400">Trạng thái: <span class="text-white">${item.status}</span></p>`
+            : '';
+        return `
+            <li class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <p class="text-xs text-gray-400 mb-1">${commandTime} (User ID: ${item.user_id})</p>
+                    <h4 class="text-lg font-semibold text-primary-accent mb-1">${item.command_type}</h4>
+                    ${valueText}
+                    ${statusText}
+                </div>
+            </li>
+        `;
+    }).join('');
+};
+
+
+// --- CÁC HÀM INFO AI (Giữ nguyên V23) ---
+const updateDetectionInfo = (detections) => {
+    if (!detections || detections.length === 0) {
+        aiResultsContent.innerHTML = '<p>Không phát hiện đối tượng nào.</p>';
+        return;
+    }
+    const counts = detections.reduce((acc, d) => {
+        acc[d.label] = (acc[d.label] || 0) + 1;
+        return acc;
+    }, {});
+    const summaryHtml = Object.entries(counts)
+        .map(([label, count]) => `<p>Phát hiện: <span class="font-semibold text-white">${count} ${label}</span></p>`)
+        .join('');
+    aiResultsContent.innerHTML = summaryHtml;
+};
+
+const resetDetectionInfo = () => {
+    if (aiResultsContent) {
+        aiResultsContent.innerHTML = '<p>Chưa có dữ liệu.</p>';
+    }
+};
+
+// --- Event Listeners ---
+document.addEventListener('DOMContentLoaded', () => {
+    // (Giữ nguyên các listener từ V23)
+    loginForm.addEventListener('submit', handleLogin);
+    logoutBtn.addEventListener('click', handleLogout);
+    
+    sidebarToggleBtn.addEventListener('click', () => {
+        floatingSidebar.classList.toggle('is-hidden');
+    });
+
+    mainNav.addEventListener('click', (e) => {
+        const link = e.target.closest('.nav-link');
+        if (link && link.dataset.view) {
+            e.preventDefault();
+            if (link.dataset.view === 'analytics') {
+                showAnalyticsGrid();
+            }
+            handleNavigation(link.dataset.view);
+            floatingSidebar.classList.add('is-hidden');
+        }
+    });
+    
+    document.addEventListener('click', (event) => {
+        const isSidebarVisible = !floatingSidebar.classList.contains('is-hidden');
+        const isClickOnToggle = event.target.closest('#sidebar-toggle-btn');
+        const isClickInSidebar = event.target.closest('#floating-sidebar');
+        if (isSidebarVisible && !isClickOnToggle && !isClickInSidebar) {
+            floatingSidebar.classList.add('is-hidden');
+        }
+    });
+    
+    // Đảm bảo back-btn dọn dẹp WebRTC (Logic V20)
+    backToDashboardBtn.addEventListener('click', () => {
+        WebRTCService.disconnect(); // <-- TỪ V20
+        if (clockInterval) clearInterval(clockInterval);
+        if (dataFetchInterval) clearInterval(dataFetchInterval);
+        clockInterval = null;
+        dataFetchInterval = null;
+        showAnalyticsGrid(); 
+        handleNavigation('dashboard');
+    });
+
+    // (Giữ nguyên listener V23)
+    addProductBtn.addEventListener('click', showAddProductModal);
+    addProductCancelBtn.addEventListener('click', hideAddProductModal);
+    
+    addProductForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        showLoader();
+        const name = document.getElementById('productName').value;
+        const species = document.getElementById('productSpecies').value;
+        const location = document.getElementById('productLocation').value;
+        const planting_date = new Date().toISOString().split('T')[0];
+        try {
+            const response = await authenticatedFetch(`${API_BASE_URL}/api/trees/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, species, location, planting_date })
+            });
+            if (!response.ok) throw new Error('Failed to create plant');
+            showToast("Thêm cây mới thành công!", 'success');
+            hideAddProductModal();
+            await fetchTrees();
+        } catch (error) {
+            console.error("Error adding product:", error);
+            showToast("Lỗi khi thêm cây.", 'error');
+        } finally {
+            hideLoader();
+        }
+    });
+
+    // (Giữ nguyên listener V23, bao gồm cả gọi showDetailView)
+    productGrid.addEventListener('click', (e) => {
+        const toggleBtn = e.target.closest('.btn-toggle-active');
+        if (toggleBtn) {
+            e.stopPropagation();
+            const productId = toggleBtn.dataset.productId;
+            const currentStatus = toggleBtn.dataset.currentStatus === 'true';
+            updateTreeStatus(productId, !currentStatus);
+            return;
+        }
+        const card = e.target.closest('.product-card-main-area');
+        if (card) {
+            const productId = card.closest('[data-product-id]').dataset.productId;
+            showDetailView(productId); // <-- Chứa logic WebRTC từ V20
+        }
+    });
+    
+    // --- KHÔI PHỤC: Listener từ V20 ---
+    detectionContainer.addEventListener('click', hideFruitDetails);
+
+    // --- KHÔI PHỤC: Hàm renderDetections (Từ V20) ---
+    // Đây là hàm quan trọng nhất tạo hiệu ứng UI
+    // (Phiên bản V23 đã có, nhưng tôi copy lại từ V20 để đảm bảo,
+    // và dùng bộ lọc trái cây mở rộng của V23)
+    const renderDetections = (detections) => {
+        detectionContainer.innerHTML = '';
+        const staticImage = overlayCanvas; 
+        const { clientWidth, clientHeight } = videoContainer;
+        const naturalWidth = realtimeVideo.videoWidth;
+        const naturalHeight = realtimeVideo.videoHeight;
+        if (!naturalWidth || !naturalHeight) return;
+
+        const imageAspect = naturalWidth / naturalHeight;
+        const containerAspect = clientWidth / clientHeight;
+        let scale, offsetX = 0, offsetY = 0;
+
+        if (imageAspect > containerAspect) {
+            scale = clientWidth / naturalWidth;
+            offsetY = (clientHeight - naturalHeight * scale) / 2;
+        } else {
+            scale = clientHeight / naturalHeight;
+            offsetX = (clientWidth - naturalWidth * scale) / 2;
+        }
+
+        // Sử dụng bộ lọc mở rộng từ V23
+        const allowedFruits = ['apple', 'orange', 'fruit', 'tomato', 'grape']; 
+        const fruitDetections = detections.filter(d => allowedFruits.includes(d.label));
+
+        fruitDetections.forEach((det) => {
+            const [x1, y1, x2, y2] = det.box;
+            const centerX = ((x1 + x2) / 2) * scale + offsetX;
+            const centerY = ((y1 + y2) / 2) * scale + offsetY;
+
+            const marker = document.createElement('div');
+            marker.className = 'detection-marker';
+            marker.style.left = `${centerX}px`;
+            marker.style.top = `${centerY}px`;
+
+            marker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                hideFruitDetails();
+
+                // Logic tạo data giả lập (từ V20)
+                const sunExposure = Math.round(85 - (centerY / clientHeight) * 20);
+                const qualityValue = (det.box[0] + det.box[1]) % 2 === 0 ? 'Good' : 'Avg';
+                const harvestValue = `${Math.round((det.box[2] % 10) + 5)} days`;
+                const details = [
+                    { label: 'Type', value: det.label.charAt(0).toUpperCase() + det.label.slice(1) },
+                    { label: 'Quality', value: qualityValue },
+                    { label: 'Harvest in', value: harvestValue },
+                    { label: 'Sunlight', value: `${sunExposure}%` },
+                    { label: 'Confidence', value: `${(det.confidence * 100).toFixed(0)}%` }
+                ];
+                
+                // Logic render vòng tròn (từ V20)
+                const detailsContainer = document.createElement('div');
+                detailsContainer.id = 'fruit-details-container';
+                detailsContainer.style.left = `${centerX}px`;
+                detailsContainer.style.top = `${centerY}px`;
+                const isNearHorizontalEdge = centerX < 160 || centerX > clientWidth - 160;
+                const isNearVerticalEdge = centerY < 160 || centerY > clientHeight - 160;
+                const baseAngle = isNearHorizontalEdge ? (centerX < 160 ? -90 : 90) : (isNearVerticalEdge ? (centerY < 160 ? 0 : 180) : 0);
+                const angleSpan = (isNearHorizontalEdge || isNearVerticalEdge) ? 180 : 360;
+                const angleIncrement = angleSpan / details.length;
+
+                details.forEach((item, i) => {
+                    const angle = (baseAngle + i * angleIncrement) * (Math.PI / 180);
+                    const ringX = 160 + Math.cos(angle) * 120;
+                    const ringY = 160 + Math.sin(angle) * 120;
+                    detailsContainer.innerHTML += `
+                        <div class="info-ring" style="left: ${ringX - 40}px; top: ${ringY - 40}px;">
+                            <svg class="info-ring-svg" width="80" height="80" viewBox="0 0 90 90" style="animation-delay: ${i * 0.1}s"><circle cx="45" cy="45" r="35"/></svg>
+                            <span class="info-value">${item.value}</span><span class="info-label">${item.label}</span>
+                        </div>
+                        <svg class="absolute inset-0 w-full h-full"><line class="connector-line" x1="160" y1="160" x2="${ringX}" y2="${ringY}" /></svg>
+                    `;
+                });
+                detectionContainer.appendChild(detailsContainer);
+                setTimeout(() => detailsContainer.classList.add('visible'), 50);
+            });
+            detectionContainer.appendChild(marker);
+        });
+    };
+
+    // --- KHÔI PHỤC: Logic V20 trong Nút Normal ---
+    viewModeNormalBtn.addEventListener('click', () => {
+        state.isAiDetectionActive = false;
+        detectionContainer.innerHTML = ''; // <-- Từ V20
+        hideFruitDetails(); // <-- Từ V20
+        resetDetectionInfo();
+        WebRTCService.canvasContext.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height); // <-- Từ V20
+        overlayCanvas.style.opacity = 0;
+        realtimeVideo.style.opacity = 1;
+        viewModeNormalBtn.classList.replace('btn-secondary', 'btn-primary');
+        viewModeAiBtn.classList.replace('btn-primary', 'btn-secondary');
+    });
+
+    // --- KHÔI PHỤC: Logic V20 + V23 trong Nút AI ---
+    // Gộp cả 2: Gọi AI (V20) VÀ Lưu capture (V23)
+    viewModeAiBtn.addEventListener('click', async () => {
+        if (state.isAiDetectionActive) return;
+        showLoader();
+
+        const video = realtimeVideo;
+        const canvas = overlayCanvas;
+        const ctx = canvas.getContext('2d');
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+
+        if (videoWidth === 0 || videoHeight === 0) {
+            showToast("Không thể chụp ảnh, video chưa sẵn sàng.", "error"); // (V23)
+            hideLoader();
+            return;
+        }
+
+        canvas.width = videoWidth;
+        canvas.height = videoHeight;
+        ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+        
+        canvas.toBlob(async (blob) => {
+            if (!blob) {
+                showToast("Không thể tạo ảnh từ video.", "error"); // (V23)
+                hideLoader();
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', blob, 'snapshot.png');
+
+            try {
+                // Bước 1: Gọi API AI (từ V20)
+                // Endpoint '/predict/image' này là relative,
+                // giả định bạn có một proxy hoặc server đang chạy
+                const response = await fetch('/predict/image', { 
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
+
+                const results = await response.json();
+                
+                // Bước 2: Xử lý kết quả AI (từ V20)
+                if (results && results.detections && results.detections.length > 0) {
+                    state.isAiDetectionActive = true;
+                    video.style.opacity = 0;
+                    canvas.style.opacity = 1;
+                    viewModeAiBtn.classList.replace('btn-secondary', 'btn-primary');
+                    viewModeNormalBtn.classList.replace('btn-primary', 'btn-secondary');
+                    
+                    renderDetections(results.detections); // <-- Từ V20
+                    WebRTCService.renderStaticDetections(results); // <-- Từ V20
+                    updateDetectionInfo(results.detections);
+                    
+                    // Bước 3: Lưu ảnh chụp (từ V23)
+                    try {
+                        const captureFormData = new FormData();
+                        captureFormData.append('file', blob, 'snapshot.png');
+                        const allowedFruits = ['apple', 'orange', 'fruit', 'tomato', 'grape'];
+                        const fruitCount = results.detections.filter(d => allowedFruits.includes(d.label)).length;
+                        captureFormData.append('total_fruit_count', fruitCount);
+
+                        const captureResponse = await authenticatedFetch(`${API_BASE_URL}/api/trees/${state.selectedProductId}/captures/`, {
+                            method: 'POST',
+                            body: captureFormData
+                        });
+                        
+                        if (!captureResponse.ok) throw new Error('Failed to save capture');
+                        
+                        const captureData = await captureResponse.json();
+                        showToast(`Đã lưu ảnh chụp (ID: ${captureData.capture_id}) với ${fruitCount} trái.`, 'success');
+                        
+                    } catch (captureError) {
+                        console.error("Error saving capture:", captureError);
+                        showToast("Phân tích AI thành công, nhưng lỗi khi lưu ảnh.", "error");
+                    }
+
+                } else {
+                    showToast("Không phát hiện đối tượng nào.", "success"); // (V23)
+                    updateDetectionInfo([]);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            } catch (error) {
+                console.error("AI analysis error:", error);
+                showToast("Lỗi trong quá trình phân tích ảnh.", "error"); // (V23)
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            } finally {
+                hideLoader();
+            }
+        }, 'image/png');
+    });
+    
+    // (Giữ nguyên các listener từ V23)
+    analyticsProductGrid.addEventListener('click', (e) => {
+        const toggleBtn = e.target.closest('.btn-toggle-active');
+        if (toggleBtn) {
+            e.stopPropagation();
+            const productId = toggleBtn.dataset.productId;
+            const currentStatus = toggleBtn.dataset.currentStatus === 'true';
+            updateTreeStatus(productId, !currentStatus);
+            return;
+        }
+        const card = e.target.closest('.product-card-main-area-analytics');
+        if (card) {
+            const productId = card.closest('[data-product-id]').dataset.productId;
+            showAnalyticsHistory(productId);
+        }
+    });
+
+    analyticsBackBtn.addEventListener('click', showAnalyticsGrid);
+    
+    waterPlantBtn.addEventListener('click', async () => {
+        showLoader();
+        try {
+            await callWorkflowAPI(WORKFLOW_WATERING_URL, state.selectedProductId);
+            await logControlAction('tưới cây', '100ml');
+        } catch (error) {
+            console.error("Watering action failed:", error);
+        } finally {
+            hideLoader();
+        }
+    });
+    
+    fertilizePlantBtn.addEventListener('click', async () => {
+        showLoader();
+        try {
+            await logControlAction('bón phân', '10g');
+        } catch (error) {
+            console.error("Fertilizing action failed:", error);
+        } finally {
+            hideLoader();
+        }
+    });
+
+    harvestPlantBtn.addEventListener('click', async () => {
+        showLoader();
+         try {
+            await logControlAction('thu hoạch', '');
+        } catch (error) {
+            console.error("Harvesting action failed:", error);
+        } finally {
+            hideLoader();
+        }
+    });
+    
+    fillWaterBtn.addEventListener('click', async () => {
+        showLoader();
+        try {
+            await callWorkflowAPI(WORKFLOW_FILL_WATER_URL, state.selectedProductId);
+            await logControlAction('đổ đầy bình chứa', '');
+        } catch (error) {
+            console.error("Fill water action failed:", error);
+        } finally {
+            hideLoader();
+        }
+    });
+
+    // Khởi động app
+    handleNavigation('login'); 
+    viewModeNormalBtn.click(); 
+    showAnalyticsGrid(); 
+});
+
+</script>
+<script src="https://ats.thienleadai.id.vn/ui/embed.js?encryption_api=d6a65185-5569-49d6-8df1-f6e0c8cb0854&encryption_secret=null&email=user@example.com"></script>
+</body>
+</html>
