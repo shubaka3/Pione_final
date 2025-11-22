@@ -1,6 +1,3 @@
-backend: https://github.com/shubaka3/pione.git
-vì code dính .git của file đấy nên mình gửi lại ở đây 
-
 # 🌱 AutoGrowChain v2.0
 
 **Intelligent Agricultural Vision System with AI Analysis & Immutable Data Ledger**
@@ -29,8 +26,11 @@ Một nền tảng nông nghiệp thông minh toàn diện, tích hợp công ng
 ### Use Cases
 
 ✅ **Giám sát Độ chính xác** - Phát hiện sớm và phân loại các bệnh, sâu bệnh hoặc dấu hiệu thiếu hụt dinh dưỡng bằng YOLOv8.
+
 ✅ **Quản lý Vòng đời Cây trồng** - Theo dõi và ghi lại trạng thái sinh trưởng của từng cây qua ID duy nhất.
+
 ✅ **Lưu trữ Dữ liệu Bất biến (ICD)** - Lưu trữ thông tin khởi tạo cây trồng và các dữ liệu backend quan trọng trên TPL Contract, phục vụ cho **backup** và **học liên kết**.
+
 ✅ **Truy xuất Nguồn gốc** - Cung cấp hồ sơ bất biến, minh bạch cho quá trình sinh trưởng (Blockchain-verified Audit Trail).
 
 ---
@@ -58,137 +58,161 @@ Một nền tảng nông nghiệp thông minh toàn diện, tích hợp công ng
 
 ## 🏗️ System Architecture
 
-
-
 ### Luồng Dữ liệu Chính:
 
-1.  **Camera/Thiết bị** $\to$ **Giao diện `cam.html`** (WebRTC/WebSocket)
-2.  **`cam.html`** $\to$ **AI Service (Port 8000)** (Nhập ID cây $\to$ Phân tích hình ảnh bằng **YOLOv8**)
-3.  **AI Service (Port 8000)** $\to$ **Backend API (Port 8002)** (Gửi kết quả phân tích & Cập nhật trạng thái)
-4.  **Backend API (Port 8002)** $\to$ **TPL Contract (Port 3005)** (Lưu trữ **ICD** và **Backup Data** lên Blockchain)
-5.  **Backend API (Port 8002)** $\to$ **Tree Contract (Port 3000)** (Cập nhật trạng thái cây trồng)
-6.  **Backend API (Port 8002)** $\to$ **Giao diện `index.html`** (Hiển thị dữ liệu Real-time)
+1. **Camera/Thiết bị** → **Giao diện `cam.html`** (WebRTC/WebSocket)
+2. **`cam.html`** → **AI Service (Port 8000)** (Nhập ID cây → Phân tích hình ảnh bằng YOLOv8)
+3. **AI Service (Port 8000)** → **Backend API (Port 8002)** (Gửi kết quả phân tích & Cập nhật trạng thái)
+4. **Backend API (Port 8002)** → **TPL Contract (Port 3005)** (Lưu trữ ICD & Backup Data lên Blockchain)
+5. **Backend API (Port 8002)** → **Tree Contract (Port 3000)** (Cập nhật trạng thái cây trồng)
+6. **Backend API (Port 8002)** → **Giao diện `index.html`** (Real-time dashboard)
 
 ---
 
 ## 💻 Technology Stack
 
-| Layer | Công nghệ Chính | Chi tiết Công nghệ |
-| :--- | :--- | :--- |
-| **AI/ML** | **YOLOv8** | Python, Ultralytics YOLOv8, TensorFlow/PyTorch (phụ thuộc vào implementation), **Uvicorn** (cho Service), **FastAPI** (cho API). |
-| **Backend API** | **Python (FastAPI)** | Python 3.10+, FastAPI (cung cấp API chính), Uvicorn, Thư viện xử lý dữ liệu. |
-| **Blockchain Bridge** | **Node.js** | Node.js (Express), **Web3.js/Ethers.js** (tương tác với Smart Contracts), **Solidity** (Smart Contracts). |
-| **Database/Storage**| PostgreSQL/MongoDB | Lưu trữ tạm thời (Local DB), phục vụ cho **backup** và **học liên kết**. |
-| **Frontend/UI** | **HTML/JS (WebRTC)** | HTML5, JavaScript, **WebRTC** (truyền video), **WebSocket** (truyền dữ liệu AI), **Live Server** (phát triển). |
-| **Networking/Tunnel** | **Ngrok/Cloudflare** | Ngrok, Cloudflare Tunnel (public API/AI Service), WebSocket/WebRTC Protocols. |
+| Layer                 | Công nghệ Chính         | Chi tiết Công nghệ                           |
+| --------------------- | ----------------------- | -------------------------------------------- |
+| **AI/ML**             | YOLOv8                  | Python, Ultralytics YOLOv8, FastAPI, Uvicorn |
+| **Backend API**       | FastAPI (Python)        | Python 3.10+, FastAPI, Uvicorn               |
+| **Blockchain Bridge** | Node.js                 | Express, Web3.js/Ethers.js, Solidity         |
+| **Database**          | PostgreSQL/MongoDB      | Lưu trữ tạm thời, hỗ trợ học liên kết        |
+| **Frontend/UI**       | HTML/JS/WebRTC          | WebRTC, WebSocket, Live Server               |
+| **Networking**        | Ngrok/Cloudflare Tunnel | Public domain phục vụ WebRTC/WebSocket       |
 
 ---
 
 ## 🚀 Installation & Running
 
-Thực hiện các bước sau để khởi động đầy đủ các dịch vụ của **AutoGrowChain**.
-
 ### Prerequisites
 
-* Node.js (16+ trở lên)
-* Python (3.10+ trở lên)
-* Các thư viện Python cần thiết cho YOLOv8 (bao gồm `ultralytics`)
-* Git
-* Ngrok hoặc Cloudflare Tunnel (để public AI Service)
-
-### 1. 🤖 Chạy AI Service (YOLOv8)
-
-Đây là dịch vụ phân tích hình ảnh chính sử dụng **YOLOv8**.
-
-1.  **Chạy Service:**
-    ```bash
-    cd Yolo-Training
-    uvicorn mainV5:app --host 0.0.0.0 --port 8000 --reload
-    ```
-2.  **Public Service:**
-    * Sử dụng **Ngrok** hoặc **Cloudflare Tunnel** để tạo tên miền công khai cho **Port 8000**.
-3.  **Cấu hình UI (`cam.html`):**
-    * Tìm trong file **`ui/cam.html`** dòng:
-        ```javascript
-        const WEBSOCKET_URL_BASE = "ws://<DOMAIN_CUA_BAN>/"
-        ```
-    * Thay thế `<DOMAIN_CUA_BAN>` bằng domain vừa host cho port 8000.
-
-### 2. 💻 Chạy Backend API (Pione)
-
-Đây là cổng nhận dữ liệu từ AI và điều phối việc lưu trữ (Local và Blockchain).
-
-1.  **Chạy Service:**
-    ```bash
-    cd Pione
-    uvicorn main:app --host 0.0.0.0 --port 8002
-    ```
-
-### 1.1 & 2.1. 🌐 Chạy UI/Giao diện (Frontend)
-
-1.  **Cấu hình UI (`index.html`):**
-    * Tìm trong file **`ui/index.html`** dòng:
-        ```javascript
-        const WEBRTC_URL_BASE_WS = "ws://<DOMAIN_CUA_BAN>/"
-        ```
-    * Thay thế `<DOMAIN_CUA_BAN>` bằng domain vừa host cho port 8000 (giống bước 1.2).
-2.  **Chạy Frontend:**
-    * Sử dụng **Live Server** hoặc tương tự để chạy file **`index.html`**.
-
-### 3. ⛓️ Chạy Tree Contract Service (Ghi nhận Trạng thái Cây)
-
-1.  **Chạy Service:**
-    ```bash
-    cd "Tree Contract"
-    node server.js
-    ```
-    * Đảm bảo dịch vụ chạy trên **Port 3000**.
-    * > **Lưu ý:** Backend API (Port 8002) vẫn chạy OK nếu contract không khởi động, nhưng sẽ không lưu dữ liệu lên Contract.
-
-### 4. 🔗 Chạy TPL Contract Service (Lưu trữ ICD & Backup Data)
-
-1.  **Chạy Service:**
-    ```bash
-    cd TPL
-    node server.js
-    ```
-    * Đảm bảo dịch vụ chạy trên **Port 3005**. Dịch vụ này thực hiện việc **lưu trữ ICD** và **backup records** phục vụ cho **học liên kết**.
-
-### ⚙️ Quy trình Vận hành
-
-1.  Truy cập giao diện **`cam.html`** trước.
-2.  Nhập **ID của cây** (ví dụ: `7`).
-3.  Truy cập giao diện **`index.html`**.
-4.  Vào phần theo dõi cây tương ứng (ví dụ: `Plant_A1 (ID 7)`).
-5.  Bạn sẽ thấy dữ liệu Real-time được cập nhật.
+* Python 3.10+
+* Node.js 16+
+* Ultralytics YOLOv8
+* Ngrok hoặc Cloudflare Tunnel
+* Live Server (VSCode)
 
 ---
 
-## 📦 Deployment
+## 1. 🤖 Chạy AI Service (YOLOv8)
 
-### Production Checklist
+```bash
+cd Yolo-Training
+uvicorn mainV5:app --host 0.0.0.0 --port 8000 --reload
+```
 
-* Thiết lập **HTTPS/SSL** cho tất cả các dịch vụ (AI, Backend).
-* Cấu hình **Firewall Rules** chính xác và bảo mật.
-* Bảo mật các khóa API và biến môi trường (**Environment Variables**).
-* Tối ưu hóa mô hình **YOLOv8** cho môi trường sản xuất (ví dụ: dùng ONNX).
-* Kiểm tra tính năng **WebRTC** và **WebSocket** trên môi trường Production.
-* Thiết lập **Giám sát & Cảnh báo** cho các dịch vụ.
+### Public qua Ngrok
+
+```bash
+ngrok http 8000
+```
+
+Ví dụ domain:
+
+```
+https://d4be9e62d6b0.ngrok-free.app
+```
 
 ---
 
-## 🤝 Contributing
+## 1.1 ⚙️ Cấu hình UI `cam.html`
 
-Quy trình đóng góp (Contributing) tiêu chuẩn:
+Mở file:
 
-1.  Fork repository.
-2.  Tạo branch mới (e.g., `git checkout -b feature/yolov8-optimization`).
-3.  Commit các thay đổi (e.g., `git commit -m 'Optimize YOLOv8 inference speed'`).
-4.  Push lên branch (e.g., `git push origin feature/yolov8-optimization`).
-5.  Mở **Pull Request**.
+```
+Yolo-Training/ui/cam.html
+```
+
+Sửa dòng:
+
+```javascript
+const WEBSOCKET_URL_BASE = "wss://<domain>/stream/ws";
+```
+
+Thành:
+
+```javascript
+const WEBSOCKET_URL_BASE = "wss://d4be9e62d6b0.ngrok-free.app/stream/ws";
+```
+
+**CAM.HTML PHẢI TRUY CẬP BẰNG DOMAIN:**
+
+```
+https://d4be9e62d6b0.ngrok-free.app/ui/cam.html
+```
+
+---
+
+## 1.2 ⚙️ Cấu hình UI `index.html`
+
+Mở file:
+
+```
+Yolo-Training/ui/index.html
+```
+
+Sửa:
+
+```javascript
+const WEBRTC_URL_BASE_WS = "wss://d4be9e62d6b0.ngrok-free.app/stream/ws";
+```
+
+**INDEX.HTML CŨNG PHẢI TRUY CẬP BẰNG DOMAIN:**
+
+```
+https://d4be9e62d6b0.ngrok-free.app/ui/index.html
+```
+
+---
+
+## 2. 💻 Chạy Backend API (Pione)
+
+```bash
+cd Pione
+uvicorn main:app --host 0.0.0.0 --port 8002
+```
+
+Quy trình:
+
+1. Truy cập **cam.html** trước → nhập ID cây (vd: 7)
+2. Mở **index.html** → vào Plant_A1 (ID 7)
+3. Dashboard realtime hoạt động
+
+---
+
+## 3. ⛓️ Chạy Tree Contract (Port 3000)
+
+```bash
+cd "Tree Contract"
+node server.js
+```
+
+> Backend vẫn chạy nếu contract tắt, nhưng không lưu được blockchain.
+
+---
+
+## 4. 🔗 Chạy TPL Contract (Port 3005)
+
+```bash
+cd TPL
+node server.js
+```
+
+Dùng để lưu **ICD** & **Backup records**.
+
+---
+
+## 📦 Deployment Checklist
+
+* HTTPS/SSL cho AI + Backend
+* Cấu hình Firewall
+* Bảo mật API Keys & ENV
+* Tối ưu hóa YOLOv8 (ONNX, INT8)
+* Kiểm tra WebRTC + WebSocket
+* Monitoring & Logs
+
+---
 
 ## 📄 License
 
-MIT License - xem file `LICENSE` để biết chi tiết.
-
-**Version:** 2.0.0 | **Last Updated:** November 2025
+MIT License — Updated 2025
